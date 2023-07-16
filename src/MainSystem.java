@@ -60,11 +60,11 @@ public class MainSystem {
     private static HttpURLConnection connectToPage(String url) throws IOException {
         URL currentItemUrl = new URL(url);
         HttpURLConnection pageConnection = (HttpURLConnection) currentItemUrl.openConnection();
-        pageConnection.setRequestMethod("GET");
-        if (pageConnection.getResponseCode() != 200){
-            System.out.println("Odrzucono połączenie");
-        } else {
+        try {
+            pageConnection.setRequestMethod("GET");
             System.out.println("Połączono");
+        } catch (Error e){
+            System.out.println("Odrzucono połączenie");
         }
         return pageConnection;
     }
