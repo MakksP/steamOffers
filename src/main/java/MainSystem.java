@@ -32,14 +32,20 @@ public class MainSystem {
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
-            List<Item> itemsOnPage = displayAndCreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
+            List<Item> itemsOnPage = CreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
+
+            for (Item item : itemsOnPage){
+                item.makeConnectionToItem();
+                item.getHistogramFromPage();
+
+            }
 
             reader.close();
         }
 
     }
 
-    private static List<Item> displayAndCreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
+    private static List<Item> CreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
         List<Item> itemsOnPage = new ArrayList<>();
         int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
         int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
@@ -51,7 +57,6 @@ public class MainSystem {
             itemHeader = cutStringBeginsDataHashName(dataHashNameToSkipLen, itemHeader);
             int endDataHashNameIndex = itemHeader.indexOf("\\");
             String dataHashName = itemHeader.substring(BEGIN_INDEX, endDataHashNameIndex);
-            System.out.println(dataAppid + "  " + dataHashName);
             itemsOnPage.add(new Item(dataAppid, dataHashName));
         }
         return itemsOnPage;
@@ -75,14 +80,14 @@ public class MainSystem {
         }
     }
 
-    private static void readDataFromPage(BufferedReader reader, StringBuilder pageHtml) throws IOException {
+    public static void readDataFromPage(BufferedReader reader, StringBuilder pageHtml) throws IOException {
         String singleHtmlLine;
         while ((singleHtmlLine = reader.readLine()) != null){
             pageHtml.append(singleHtmlLine);
         }
     }
 
-    private static HttpURLConnection connectToPage(String url) throws IOException {
+    public static HttpURLConnection connectToPage(String url) throws IOException {
         URL currentItemUrl = new URL(url);
         HttpURLConnection pageConnection = (HttpURLConnection) currentItemUrl.openConnection();
         try {
