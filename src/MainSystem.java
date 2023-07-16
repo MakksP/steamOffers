@@ -14,6 +14,9 @@ public class MainSystem {
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search/render/?query=&start=";
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
+    public static final int BEGIN_INDEX = 0;
+    public static final int EXTRA_CHARS = 3;
+
     public static void main(String[] args) throws IOException {
 
         for (int currentPageIndex = 0; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex+=10){
@@ -29,16 +32,37 @@ public class MainSystem {
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
-            displayPageHeaders(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
+            displayAndCreateItem(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
+
             reader.close();
         }
 
     }
 
-    private static void displayPageHeaders(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
-        for (int i = 0; i < 10; i++) {
-            System.out.println(pageHtml.substring(itemsDataStartIndexes.get(i), itemsDataEndIndexes.get(i)));
+    private static void displayAndCreateItem(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
+        List<Item> itemsOnPage = new ArrayList<>();
+        int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
+        int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
+        for (int itemIndex = 0; itemIndex < ITEMS_ON_PAGE; itemIndex++) {
+            String itemHeader = createItemHeader(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes, partToSkipLen, itemIndex);
+            int endDataAppidIndex = itemHeader.indexOf("\\");
+            int dataAppid = Integer.parseInt(itemHeader.substring(BEGIN_INDEX, endDataAppidIndex));
+
+            itemHeader = cutStringBeginsDataHashName(dataHashNameToSkipLen, itemHeader);
+            int endDataHashNameIndex = itemHeader.indexOf("\\");
+            String dataHashName = itemHeader.substring(BEGIN_INDEX, endDataHashNameIndex);
+            System.out.println(dataAppid + "  " + dataHashName);
+            itemsOnPage.add(new Item(dataAppid, dataHashName));
         }
+    }
+
+    private static String cutStringBeginsDataHashName(int dataHashNameToSkipLen, String itemHeader) {
+        itemHeader = itemHeader.substring(dataHashNameToSkipLen);
+        return itemHeader;
+    }
+
+    private static String createItemHeader(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int partToSkipLen, int itemIndex) {
+        return pageHtml.substring(itemsDataStartIndexes.get(itemIndex) + partToSkipLen, itemsDataEndIndexes.get(itemIndex));
     }
 
     private static void getStartAndEndHeaderIndex(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
