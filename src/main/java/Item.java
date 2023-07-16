@@ -6,6 +6,8 @@ import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 
 public class Item {
+    public static final String PRICES_HISTOGRAM_HEADER = "$J(document).ready(function(){";
+    public static final int START_INDEX = 0;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
@@ -26,9 +28,17 @@ public class Item {
         this.pageHtml = new StringBuilder();
 
         MainSystem.readDataFromPage(reader, pageHtml);
+
     }
 
     public void getHistogramFromPage(){
+        String histogramFromHtml = getHistogramFromHtmlPage();
+    }
 
+    private String getHistogramFromHtmlPage() {
+        String histogramFromHtml = pageHtml.substring(pageHtml.indexOf(PRICES_HISTOGRAM_HEADER));
+        histogramFromHtml = histogramFromHtml.substring(histogramFromHtml.indexOf("["));
+        histogramFromHtml = histogramFromHtml.substring(START_INDEX,  histogramFromHtml.indexOf(";"));
+        return histogramFromHtml;
     }
 }
