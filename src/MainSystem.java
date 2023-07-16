@@ -32,14 +32,14 @@ public class MainSystem {
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
-            displayAndCreateItem(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
+            List<Item> itemsOnPage = displayAndCreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
             reader.close();
         }
 
     }
 
-    private static void displayAndCreateItem(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
+    private static List<Item> displayAndCreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
         List<Item> itemsOnPage = new ArrayList<>();
         int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
         int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
@@ -54,6 +54,7 @@ public class MainSystem {
             System.out.println(dataAppid + "  " + dataHashName);
             itemsOnPage.add(new Item(dataAppid, dataHashName));
         }
+        return itemsOnPage;
     }
 
     private static String cutStringBeginsDataHashName(int dataHashNameToSkipLen, String itemHeader) {
