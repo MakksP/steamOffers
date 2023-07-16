@@ -16,7 +16,7 @@ public class Item {
     public Item(int dataAppid, String dataHashName){
         this.dataAppid = dataAppid;
         this.dataHashName = dataHashName;
-        itemUrl = STATIC_ITEM_LINK_PART + dataAppid + "/" + StringEscapeUtils.unescapeHtml4(dataHashName);
+        itemUrl = STATIC_ITEM_LINK_PART + dataAppid + "/" + StringEscapeUtils.unescapeHtml4(dataHashName).replaceAll(" ", "%20");
     }
 
     public void makeConnectionToItem() throws IOException {
