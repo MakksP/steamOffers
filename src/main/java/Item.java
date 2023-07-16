@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.time.LocalDate;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -33,6 +34,8 @@ public class Item {
 
     public void getHistogramFromPage(){
         String histogramFromHtml = getHistogramFromHtmlPage();
+        LocalDate currentDate = LocalDate.now();
+
     }
 
     private String getHistogramFromHtmlPage() {

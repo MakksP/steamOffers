@@ -10,7 +10,7 @@ import java.util.List;
 public class MainSystem {
 
     public static final int NUMBER_OF_PAGES = 44268;
-    public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc";
+    public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search/render/?query=&start=";
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
