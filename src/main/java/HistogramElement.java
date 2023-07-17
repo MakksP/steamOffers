@@ -14,7 +14,6 @@ public class HistogramElement {
 
     public boolean isWithinDateRange(LocalDate currentDate){
         LocalDate beginDate = currentDate.minusDays(DAYS_IN_MONTH);
-        LocalDate endDate = currentDate.plusDays(DAYS_IN_MONTH);
-        return (itemSoldDate.isAfter(beginDate) || itemSoldDate.isEqual(beginDate)) && (itemSoldDate.isBefore(endDate) || itemSoldDate.isEqual(endDate));
+        return itemSoldDate.isAfter(beginDate) || itemSoldDate.isEqual(beginDate);
     }
 }
