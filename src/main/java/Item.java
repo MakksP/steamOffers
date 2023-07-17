@@ -21,6 +21,7 @@ public class Item {
         this.dataAppid = dataAppid;
         this.dataHashName = dataHashName;
         itemUrl = STATIC_ITEM_LINK_PART + dataAppid + "/" + StringEscapeUtils.unescapeHtml4(dataHashName).replaceAll(" ", "%20");
+        itemSellHistogram = new ArrayList<>();
     }
 
     public void makeConnectionToItem() throws IOException {
@@ -44,7 +45,11 @@ public class Item {
             List<String> priceAndCount = Format.formatCountAndPrice(tempDate);
             Format.updateCountPriceToFormatted(tempDate, priceAndCount);
             HistogramElement histogramElement = Format.createHistogramElement(tempDate);
-            System.out.println(tempDate);
+            if (histogramElement.isWithinDateRange(currentDate)){
+                itemSellHistogram.add(histogramElement);
+            } else {
+                break;
+            }
         }
 
     }
