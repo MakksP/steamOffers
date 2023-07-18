@@ -17,8 +17,9 @@ public class Item {
     public static final String STATIC_ORDER_GET_SECOND_PART = "&two_factor=0";
     private String itemUrl;
     private StringBuilder pageHtml;
-    private double mostExpensiveBuyOrder;
+    private StringBuilder orderBuyPageHtml;
     private List<HistogramElement> itemSellHistogram;
+    private String mostExpensiveBuyOrder;
 
     public Item(int dataAppid, String dataHashName){
         this.dataAppid = dataAppid;
@@ -34,6 +35,7 @@ public class Item {
         this.pageHtml = new StringBuilder();
 
         MainSystem.readDataFromPage(reader, pageHtml);
+        reader.close();
 
     }
 
@@ -69,15 +71,16 @@ public class Item {
         String itemNameId = Format.getItemNameIdFromHtmlPage(pageHtml);
         HttpURLConnection pageConnection = MainSystem.connectToPage(STATIC_ORDER_GET_FIRST_PART + itemNameId + STATIC_ORDER_GET_SECOND_PART);
         BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
-        StringBuilder orderBuyPageHtml = new StringBuilder();
+        orderBuyPageHtml = new StringBuilder();
 
         MainSystem.readDataFromPage(reader, orderBuyPageHtml);
-        String mostExpensiveBuyOrder = Format.cutMostExpensiveOrderFromHtml(orderBuyPageHtml);
+        mostExpensiveBuyOrder = Format.cutMostExpensiveOrderFromHtml(orderBuyPageHtml);
+        reader.close();
         System.out.println(mostExpensiveBuyOrder);
     }
 
 
-    public double getMostExpensiveBuyOrder() {
+    public String getMostExpensiveBuyOrder() {
         return mostExpensiveBuyOrder;
     }
 
