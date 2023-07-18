@@ -36,8 +36,8 @@ public class MainSystem {
 
             for (Item item : itemsOnPage){
                 item.makeConnectionToItem();
-                item.getHistogramFromPage();
-
+                item.createHistogramFromPage();
+                item.findMostExpensiveBuyOrder();
             }
 
             reader.close();

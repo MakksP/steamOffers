@@ -13,8 +13,11 @@ public class Item {
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
+    public static final String STATIC_ORDER_GET_FIRST_PART = "https://steamcommunity.com/market/itemordershistogram?country=PL&language=polish&currency=1&item_nameid=";
+    public static final String STATIC_ORDER_GET_SECOND_PART = "&two_factor=0";
     private String itemUrl;
     private StringBuilder pageHtml;
+    private double mostExpensiveBuyOrder;
     private List<HistogramElement> itemSellHistogram;
 
     public Item(int dataAppid, String dataHashName){
@@ -34,7 +37,7 @@ public class Item {
 
     }
 
-    public void getHistogramFromPage(){
+    public void createHistogramFromPage(){
         String histogramFromHtml = getHistogramFromHtmlPage();
         LocalDate currentDate = LocalDate.now();
         List<String> histogramSells = new ArrayList<>(List.of(histogramFromHtml.split("]")));
@@ -61,4 +64,21 @@ public class Item {
         histogramFromHtml = histogramFromHtml.substring(START_INDEX,  histogramFromHtml.indexOf(";"));
         return histogramFromHtml;
     }
+
+    public void findMostExpensiveBuyOrder() throws IOException {
+        String itemNameId = Format.getItemNameIdFromHtmlPage(pageHtml);
+        HttpURLConnection pageConnection = MainSystem.connectToPage(STATIC_ORDER_GET_FIRST_PART + itemNameId + STATIC_ORDER_GET_SECOND_PART);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
+        StringBuilder orderBuyPageHtml = new StringBuilder();
+
+        MainSystem.readDataFromPage(reader, orderBuyPageHtml);
+        String mostExpensiveBuyOrder = Format.cutMostExpensiveOrderFromHtml(orderBuyPageHtml);
+        System.out.println(mostExpensiveBuyOrder);
+    }
+
+
+    public double getMostExpensiveBuyOrder() {
+        return mostExpensiveBuyOrder;
+    }
+
 }
