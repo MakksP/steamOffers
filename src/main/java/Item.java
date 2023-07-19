@@ -21,11 +21,14 @@ public class Item {
     private List<HistogramElement> itemSellHistogram;
     private String mostExpensiveBuyOrder;
 
-    public Item(int dataAppid, String dataHashName){
+    public Item(int dataAppid, String dataHashName) throws IOException {
         this.dataAppid = dataAppid;
         this.dataHashName = dataHashName;
         itemUrl = STATIC_ITEM_LINK_PART + dataAppid + "/" + StringEscapeUtils.unescapeHtml4(dataHashName).replaceAll(" ", "%20");
         itemSellHistogram = new ArrayList<>();
+        this.makeConnectionToItem();
+        this.createHistogramFromPage();
+        this.findMostExpensiveBuyOrder();
     }
 
     public void makeConnectionToItem() throws IOException {

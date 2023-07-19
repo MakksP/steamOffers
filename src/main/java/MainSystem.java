@@ -34,18 +34,13 @@ public class MainSystem {
 
             List<Item> itemsOnPage = CreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
-            for (Item item : itemsOnPage){
-                item.makeConnectionToItem();
-                item.createHistogramFromPage();
-                item.findMostExpensiveBuyOrder();
-            }
 
             reader.close();
         }
 
     }
 
-    private static List<Item> CreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
+    private static List<Item> CreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException {
         List<Item> itemsOnPage = new ArrayList<>();
         int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
         int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
