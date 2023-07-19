@@ -17,7 +17,7 @@ public class MainSystem {
     public static final int BEGIN_INDEX = 0;
     public static final int EXTRA_CHARS = 3;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         for (int currentPageIndex = 0; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex+=10){
             String url = STATIC_URL_PART + currentPageIndex + SORTING;
@@ -34,13 +34,19 @@ public class MainSystem {
 
             List<Item> itemsOnPage = CreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
+            for (Item currentItem : itemsOnPage){
+                int points = currentItem.analyseItem();
+                if (points > 0){
+                    System.out.println(currentItem.getDataHashName() + ", punkty opłacalnośći: " + points);
+                }
+            }
 
             reader.close();
         }
 
     }
 
-    private static List<Item> CreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException {
+    private static List<Item> CreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
         List<Item> itemsOnPage = new ArrayList<>();
         int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
         int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
@@ -87,7 +93,6 @@ public class MainSystem {
         HttpURLConnection pageConnection = (HttpURLConnection) currentItemUrl.openConnection();
         try {
             pageConnection.setRequestMethod("GET");
-            System.out.println("Połączono");
         } catch (Error e){
             System.out.println("Odrzucono połączenie");
         }
