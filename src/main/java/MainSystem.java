@@ -10,7 +10,7 @@ import java.util.List;
 public class MainSystem {
 
     public static final int NUMBER_OF_PAGES = 44268;
-    public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730";
+    public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search/render/?query=&start=";
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
@@ -23,7 +23,7 @@ public class MainSystem {
             String url = STATIC_URL_PART + currentPageIndex + SORTING;
 
             HttpURLConnection pageConnection = connectToPage(url);
-
+            Thread.sleep(Item.GET_PAUSE_TIME_MILLS);
             BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
             StringBuilder pageHtml = new StringBuilder();
             readDataFromPage(reader, pageHtml);

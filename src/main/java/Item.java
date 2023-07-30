@@ -15,7 +15,7 @@ public class Item {
     public static final int ONE_HUNDRED_PERCENT = 1;
     public static final double TAX_PART = 0.15;
     public static final double BONUS_PER_VALUE = 2.5;
-    public static final int GET_PAUSE_TIME_MILLS = 3000;
+    public static final int GET_PAUSE_TIME_MILLS = 4000;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
