@@ -3,6 +3,7 @@ package com.example.steamofferswithgui;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -24,6 +25,10 @@ public class SteamOffersGui extends Application {
     public static final int LOGO_ROW_INDEX = 0;
     public static final int COMBOBOX_COLUMN_INDEX = 0;
     public static final int COMBOBOX_ROW_INDEX = 1;
+    public static final int BUTTON_COLUMN_INDEX = 1;
+    public static final int BUTTON_ROW_INDEX = 1;
+    public static final String TEXT_COLOR_HEX = "#fff";
+    private SearchOffersButton startLooking;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -46,10 +51,10 @@ public class SteamOffersGui extends Application {
     public void initMenu(GridPane mainPane){
         ImageView steamOffersLogo = generateImage("/steamOffersImages/steamOffersLogo.png");
         mainPane.add(steamOffersLogo, LOGO_COLUMN_INDEX, LOGO_ROW_INDEX);
-        ComboBox<String> possibleSearchOptions = new ComboBox<>();
-        possibleSearchOptions.setPromptText("Choose items to search");
-        possibleSearchOptions.getItems().add("★ StatTrack™");
+        ItemsComboBox<String> possibleSearchOptions = new ItemsComboBox();
         mainPane.add(possibleSearchOptions, COMBOBOX_COLUMN_INDEX, COMBOBOX_ROW_INDEX);
+        startLooking = new SearchOffersButton("Search");
+        mainPane.add(startLooking, BUTTON_COLUMN_INDEX, BUTTON_ROW_INDEX);
     }
 
     public ImageView generateImage(String path){
