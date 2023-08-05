@@ -10,6 +10,14 @@ public class SearchOffersButton extends Button {
         this.setOnMouseEntered(mouseEvent -> {
             this.setCursor(Cursor.HAND);
         });
+
+        this.setOnMouseClicked(mouseEvent -> {
+            clearMainPane();
+        });
+    }
+
+    private static void clearMainPane() {
+        SteamOffersGui.getMainPane().getChildren().clear();
     }
 
 }

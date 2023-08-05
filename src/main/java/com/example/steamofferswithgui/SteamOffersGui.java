@@ -29,10 +29,11 @@ public class SteamOffersGui extends Application {
     public static final int BUTTON_ROW_INDEX = 1;
     public static final String TEXT_COLOR_HEX = "#fff";
     private SearchOffersButton startLooking;
+    private static GridPane mainPane;
 
     @Override
     public void start(Stage stage) throws IOException {
-        GridPane mainPane = initMenuPane();
+        mainPane = initMenuPane();
         mainPane.setBackground(new Background(new BackgroundFill(Paint.valueOf(BACKGROUND_COLOR_HEX), null, null)));
         Scene scene = new Scene(mainPane, SCENE_WIDTH, SCENE_HEIGHT);
         stage.setTitle("Steam market offers by czisiasty - v1.0");
@@ -61,6 +62,11 @@ public class SteamOffersGui extends Application {
         Image image = new Image(getClass().getResourceAsStream(path));
         return new ImageView(image);
     }
+
+    public static GridPane getMainPane(){
+        return mainPane;
+    }
+
 
     public static void main(String[] args) {
         launch();
