@@ -1,8 +1,12 @@
 package com.example.steamofferswithgui;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,12 +31,12 @@ public class MainSystem {
     public static final int EXTRA_CHARS = 3;
     public static final int EMPTY_PANE_SIZE = 1;
     public static final int THREADS_COUNT = 1;
+    public static final int ANALYSED_ITEM_FONT_SIZE = 20;
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
 
         for (int currentPageIndex = 0; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex+=10){
             String url = STATIC_URL_PART + currentPageIndex + SORTING;
-            Thread.sleep(Item.GET_PAUSE_TIME_MILLS);
             HttpURLConnection pageConnection = connectToPage(url);
             BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
             StringBuilder pageHtml = new StringBuilder();
@@ -51,6 +55,7 @@ public class MainSystem {
             }
 
             reader.close();
+            Thread.sleep(Item.GET_PAUSE_TIME_MILLS);
         }
 
     }
@@ -68,38 +73,42 @@ public class MainSystem {
             int endDataHashNameIndex = itemHeader.indexOf("\\");
             String dataHashName = itemHeader.substring(BEGIN_INDEX, endDataHashNameIndex);
 
-            Platform.runLater(() -> {
-                CountDownLatch threadWait = new CountDownLatch(THREADS_COUNT);
-                Platform.runLater(() -> {
-                    try {
-                        checkAndDeleteAnalysedItemLabel();
-                        threadWait.countDown();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+            checkAndDeleteAnalysedItemLabel();
+            ImageView loading = getLoadingWheelImage();
 
-                });
-                try {
-                    threadWait.await();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            Label itemLabel = new Label("Analysed item: " + dataHashName);
+            itemLabel.setId("ANALYSED_ITEM");
+            itemLabel.setTextFill(Color.GREEN);
+            itemLabel.setFont(new Font(ANALYSED_ITEM_FONT_SIZE));
+
+            Platform.runLater(() -> {
+                if (paneIsEmpty()){
+                    SteamOffersGui.getMainPane().add(loading, 0, 0);
                 }
-                Label itemLabel = new Label("Analysed item: " + dataHashName);
-                itemLabel.setId("ANALYSED_ITEM");
+
                 SteamOffersGui.getMainPane().add(itemLabel, 1, 0);
             });
 
             try {
                 itemsOnPage.add(new Item(dataAppid, dataHashName));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
 
 
         }
         return itemsOnPage;
+    }
+
+    private static boolean paneIsEmpty() {
+        return SteamOffersGui.getMainPane().getChildren().size() == 0;
+    }
+
+    private static ImageView getLoadingWheelImage() {
+        ImageView loading = SteamOffersGui.initLoadingWheel();
+        SteamOffersGui.getMainPane().setAlignment(Pos.TOP_LEFT);
+        loading.setId("LOADING_WHEEL");
+        return loading;
     }
 
     private static String cutStringBeginsDataHashName(int dataHashNameToSkipLen, String itemHeader) {

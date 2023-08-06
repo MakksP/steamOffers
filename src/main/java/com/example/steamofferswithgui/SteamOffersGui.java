@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+
 public class SteamOffersGui extends Application {
 
     public static final int SCENE_WIDTH = 1280;
@@ -30,6 +31,8 @@ public class SteamOffersGui extends Application {
     public static final int MAIN_PANE_RIGHT_PADDING = 10;
     public static final int MAIN_PANE_DOWN_PADDING = 0;
     public static final int MAIN_PANE_LEFT_PADDING = 30;
+    public static final int LOADING_IMAGE_HEIGHT = 50;
+    public static final int LOADING_IMAGE_WIDTH = 50;
     private SearchOffersButton startLooking;
     private static GridPane mainPane;
     private static ItemsComboBox<String> possibleSearchOptions;
@@ -56,7 +59,7 @@ public class SteamOffersGui extends Application {
     public void initMenu(GridPane mainPane){
         ImageView steamOffersLogo = generateImage("/steamOffersImages/steamOffersLogo.png");
         mainPane.add(steamOffersLogo, LOGO_COLUMN_INDEX, LOGO_ROW_INDEX);
-        possibleSearchOptions = new ItemsComboBox();
+        possibleSearchOptions = new ItemsComboBox<>();
         mainPane.add(possibleSearchOptions, COMBOBOX_COLUMN_INDEX, COMBOBOX_ROW_INDEX);
         startLooking = new SearchOffersButton("Search");
         mainPane.add(startLooking, BUTTON_COLUMN_INDEX, BUTTON_ROW_INDEX);
@@ -78,4 +81,12 @@ public class SteamOffersGui extends Application {
     public static void main(String[] args) {
         launch();
     }
+
+    public static ImageView initLoadingWheel() {
+        ImageView loading = SteamOffersGui.generateImage("/steamOffersImages/loading.gif");
+        loading.setFitHeight(LOADING_IMAGE_HEIGHT);
+        loading.setFitWidth(LOADING_IMAGE_WIDTH);
+        return loading;
+    }
+
 }
