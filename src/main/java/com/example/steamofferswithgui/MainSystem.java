@@ -32,6 +32,12 @@ public class MainSystem {
     public static final int EMPTY_PANE_SIZE = 1;
     public static final int THREADS_COUNT = 1;
     public static final int ANALYSED_ITEM_FONT_SIZE = 20;
+    public static final int LOADING_WHEEL_COLUMN = 0;
+    public static final int LOADING_WHEEL_ROW = 0;
+    public static final int ANALYSED_ITEM_COLUMN = 1;
+    public static final int ANALYSED_ITEM_ROW = 0;
+    public static final int ACCEPTED_ITEM_COLUMN = 0;
+    public static int acceptedItemRowCounter = 2;
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
 
@@ -50,6 +56,11 @@ public class MainSystem {
             for (Item currentItem : itemsOnPage){
                 int points = currentItem.analyseItem();
                 if (points > 0){
+                    Label acceptedItemLabel = createItemLabel(currentItem.getDataHashName());
+                    Platform.runLater(() -> {
+                        SteamOffersGui.getMainPane().add(acceptedItemLabel, acceptedItemRowCounter, ACCEPTED_ITEM_COLUMN);
+                        acceptedItemRowCounter++;
+                    });
                     System.out.println(currentItem.getDataHashName() + ", punkty opłacalnośći: " + points);
                 }
             }
@@ -76,17 +87,14 @@ public class MainSystem {
             checkAndDeleteAnalysedItemLabel();
             ImageView loading = getLoadingWheelImage();
 
-            Label itemLabel = new Label("Analysed item: " + dataHashName);
-            itemLabel.setId("ANALYSED_ITEM");
-            itemLabel.setTextFill(Color.GREEN);
-            itemLabel.setFont(new Font(ANALYSED_ITEM_FONT_SIZE));
+            Label itemLabel = createItemLabel("Analysed item: " + dataHashName);
 
             Platform.runLater(() -> {
                 if (paneIsEmpty()){
-                    SteamOffersGui.getMainPane().add(loading, 0, 0);
+                    SteamOffersGui.getMainPane().add(loading, LOADING_WHEEL_COLUMN, LOADING_WHEEL_ROW);
                 }
 
-                SteamOffersGui.getMainPane().add(itemLabel, 1, 0);
+                SteamOffersGui.getMainPane().add(itemLabel, ANALYSED_ITEM_COLUMN, ANALYSED_ITEM_ROW);
             });
 
             try {
@@ -98,6 +106,14 @@ public class MainSystem {
 
         }
         return itemsOnPage;
+    }
+
+    public static Label createItemLabel(String itemLabelText) {
+        Label itemLabel = new Label(itemLabelText);
+        itemLabel.setId("ANALYSED_ITEM");
+        itemLabel.setTextFill(Color.GREEN);
+        itemLabel.setFont(new Font(ANALYSED_ITEM_FONT_SIZE));
+        return itemLabel;
     }
 
     private static boolean paneIsEmpty() {
@@ -150,7 +166,9 @@ public class MainSystem {
     public static void checkAndDeleteAnalysedItemLabel() throws InterruptedException {
         for (Node element : SteamOffersGui.getMainPane().getChildren()){
             if (Objects.equals(element.getId(), "ANALYSED_ITEM")){
-                SteamOffersGui.getMainPane().getChildren().remove(element);
+                Platform.runLater(() -> {
+                    SteamOffersGui.getMainPane().getChildren().remove(element);
+                });
             }
         }
     }
