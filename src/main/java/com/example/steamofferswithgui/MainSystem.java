@@ -1,5 +1,9 @@
 package com.example.steamofferswithgui;
 
+import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,6 +11,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 public class MainSystem {
 
@@ -14,17 +20,20 @@ public class MainSystem {
     public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search/render/?query=&start=";
     public static final int ITEMS_ON_PAGE = 10;
+    public static final int ANALYSED = 1;
+    public static final int ANALYSED_ITEM_INDEX = ANALYSED;
     public static final int ONE_NEXT_INDEX = 1;
     public static final int BEGIN_INDEX = 0;
     public static final int EXTRA_CHARS = 3;
+    public static final int EMPTY_PANE_SIZE = 1;
+    public static final int THREADS_COUNT = 1;
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
 
         for (int currentPageIndex = 0; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex+=10){
             String url = STATIC_URL_PART + currentPageIndex + SORTING;
-
-            HttpURLConnection pageConnection = connectToPage(url);
             Thread.sleep(Item.GET_PAUSE_TIME_MILLS);
+            HttpURLConnection pageConnection = connectToPage(url);
             BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
             StringBuilder pageHtml = new StringBuilder();
             readDataFromPage(reader, pageHtml);
@@ -32,7 +41,6 @@ public class MainSystem {
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
-
             List<Item> itemsOnPage = CreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
             for (Item currentItem : itemsOnPage){
@@ -59,7 +67,37 @@ public class MainSystem {
             itemHeader = cutStringBeginsDataHashName(dataHashNameToSkipLen, itemHeader);
             int endDataHashNameIndex = itemHeader.indexOf("\\");
             String dataHashName = itemHeader.substring(BEGIN_INDEX, endDataHashNameIndex);
-            itemsOnPage.add(new Item(dataAppid, dataHashName));
+
+            Platform.runLater(() -> {
+                CountDownLatch threadWait = new CountDownLatch(THREADS_COUNT);
+                Platform.runLater(() -> {
+                    try {
+                        checkAndDeleteAnalysedItemLabel();
+                        threadWait.countDown();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                });
+                try {
+                    threadWait.await();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                Label itemLabel = new Label("Analysed item: " + dataHashName);
+                itemLabel.setId("ANALYSED_ITEM");
+                SteamOffersGui.getMainPane().add(itemLabel, 1, 0);
+            });
+
+            try {
+                itemsOnPage.add(new Item(dataAppid, dataHashName));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+
         }
         return itemsOnPage;
     }
@@ -98,5 +136,13 @@ public class MainSystem {
             System.out.println("Odrzucono połączenie");
         }
         return pageConnection;
+    }
+
+    public static void checkAndDeleteAnalysedItemLabel() throws InterruptedException {
+        for (Node element : SteamOffersGui.getMainPane().getChildren()){
+            if (Objects.equals(element.getId(), "ANALYSED_ITEM")){
+                SteamOffersGui.getMainPane().getChildren().remove(element);
+            }
+        }
     }
 }
