@@ -5,9 +5,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
+
+import static com.example.steamofferswithgui.MainSystem.driver;
 
 public class Item {
     public static final String PRICES_HISTOGRAM_HEADER = "$J(document).ready(function(){";
@@ -17,8 +16,7 @@ public class Item {
     public static final int ONE_HUNDRED_PERCENT = 1;
     public static final double TAX_PART = 0.15;
     public static final double BONUS_PER_VALUE = 2.5;
-    public static final int GET_PAUSE_TIME_MILLS = 4000;
-    public static final int WAIT_FOR_SITE_LOAD_TIME = 5000;
+    public static final int WAIT_FOR_SITE_LOAD_TIME = 2000;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
@@ -40,13 +38,9 @@ public class Item {
             System.out.println("ERROR - SKIP");
         }
         System.out.println("Znalazł najdroższe zlecenie");
-        Thread.sleep(GET_PAUSE_TIME_MILLS);
     }
 
     public void makeConnectionToItem() throws IOException {
-
-        FirefoxOptions options = new FirefoxOptions();
-        WebDriver driver = new FirefoxDriver(options);
 
         driver.get(itemUrl);
         try {
@@ -55,7 +49,6 @@ public class Item {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        driver.close();
     }
 
     public void createHistogramFromPage(){

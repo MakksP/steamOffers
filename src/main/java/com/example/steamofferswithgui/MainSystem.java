@@ -1,8 +1,12 @@
 package com.example.steamofferswithgui;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,17 +26,17 @@ public class MainSystem {
     public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search/render/?query=&start=";
     public static final int ITEMS_ON_PAGE = 10;
-    public static final int ANALYSED = 1;
-    public static final int ANALYSED_ITEM_INDEX = ANALYSED;
     public static final int ONE_NEXT_INDEX = 1;
     public static final int BEGIN_INDEX = 0;
     public static final int EXTRA_CHARS = 3;
-    public static final int EMPTY_PANE_SIZE = 1;
-    public static final int THREADS_COUNT = 1;
-    public static final int ACCEPTED_ITEM_COLUMN = 0;
+    public static final int ACCEPTED_ITEM_COLUMN = 1;
     public static int acceptedItemRowCounter = 2;
 
+    public static FirefoxOptions options;
+    public static WebDriver driver;
+
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
+        initWebDriver();
 
         for (int currentPageIndex = 0; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex+=10){
             String url = STATIC_URL_PART + currentPageIndex + SORTING;
@@ -48,7 +52,14 @@ public class MainSystem {
 
             reader.close();
         }
+        driver.close();
 
+    }
+
+    private static void initWebDriver() {
+        options = new FirefoxOptions();
+        options.setHeadless(true);
+        driver = new FirefoxDriver(options);
     }
 
     private static void calculateItemFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
@@ -132,8 +143,13 @@ public class MainSystem {
         for (int currentItemIndex = 0; currentItemIndex < ITEMS_ON_PAGE; currentItemIndex++){
 
             itemsDataStartIndexes.add(pageHtml.indexOf("\"result_" + currentItemIndex));
-            String itemDataHtmlPart = pageHtml.substring(itemsDataStartIndexes.get(currentItemIndex));
-            itemsDataEndIndexes.add(itemDataHtmlPart.indexOf(">") + itemsDataStartIndexes.get(currentItemIndex) + ONE_NEXT_INDEX);
+            try {
+                String itemDataHtmlPart = pageHtml.substring(itemsDataStartIndexes.get(currentItemIndex));
+                itemsDataEndIndexes.add(itemDataHtmlPart.indexOf(">") + itemsDataStartIndexes.get(currentItemIndex) + ONE_NEXT_INDEX);
+            } catch (Exception e) {
+                System.out.println("First error");
+            }
+
         }
     }
 

@@ -17,9 +17,12 @@ public class NodeManagement {
     public static final int ANALYSED_ITEM_COLUMN = 1;
     public static final int ANALYSED_ITEM_ROW = 0;
     public static final int DECISION_WHEEL_SHOW_TIME = 1000;
+    public static final int ITEM_LABEL_MIN_WIDTH = 500;
 
     public static Label createItemLabel(String itemLabelText, ItemLabelType labelType) {
+        SteamOffersGui.getMainPane().setAlignment(Pos.TOP_LEFT);
         Label itemLabel = new Label(itemLabelText);
+        itemLabel.setMinWidth(ITEM_LABEL_MIN_WIDTH);
         if (labelType == ItemLabelType.IN_PROGRESS){
             itemLabel.setId("ANALYSED_ITEM");
             itemLabel.setTextFill(Color.GREEN);
@@ -99,11 +102,6 @@ public class NodeManagement {
                     throw new RuntimeException(e);
                 }
                 SteamOffersGui.getMainPane().add(loading, LOADING_WHEEL_COLUMN, LOADING_WHEEL_ROW);
-            }
-            try {
-                Thread.sleep(DECISION_WHEEL_SHOW_TIME);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         });
     }
