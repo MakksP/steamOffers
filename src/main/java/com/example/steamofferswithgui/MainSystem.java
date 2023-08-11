@@ -75,6 +75,9 @@ public class MainSystem {
 
             try {
                 Item currentItem = new Item(dataAppid, dataHashName);
+                if (currentItem.getMostExpensiveBuyOrder() == null){
+                    continue;
+                }
                 checkItemProfit(currentItem);
 
 
@@ -88,14 +91,14 @@ public class MainSystem {
     private static void checkItemProfit(Item currentItem) throws InterruptedException {
         int points = currentItem.analyseItem();
         if (itemHavePotential(points)){
-            Label acceptedItemLabel = NodeManagement.createItemLabel(currentItem.getDataHashName(), ItemLabelType.ACCEPTED);
+            Label acceptedItemLabel = NodeManagement.createItemLabel(currentItem.getDataHashName() + " have: " + points + " points", ItemLabelType.ACCEPTED);
             Platform.runLater(() -> {
                 try {
                     NodeManagement.changeLoadingWheelToAcceptWheel();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                SteamOffersGui.getMainPane().add(acceptedItemLabel, acceptedItemRowCounter, ACCEPTED_ITEM_COLUMN);
+                SteamOffersGui.getMainPane().add(acceptedItemLabel, ACCEPTED_ITEM_COLUMN, acceptedItemRowCounter);
                 acceptedItemRowCounter++;
             });
             System.out.println(currentItem.getDataHashName() + ", punkty opłacalnośći: " + points);

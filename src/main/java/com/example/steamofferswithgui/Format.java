@@ -92,7 +92,13 @@ public class Format {
     }
 
     public static String cutMostExpensiveOrderFromHtml(String orderBuyPageHtml) {
-        String mostExpensiveBuyOrder = orderBuyPageHtml.substring(orderBuyPageHtml.indexOf(MOST_EXPENSIVE_ORDER_HEADER));
+        String mostExpensiveBuyOrder;
+        try {
+            mostExpensiveBuyOrder = orderBuyPageHtml.substring(orderBuyPageHtml.indexOf(MOST_EXPENSIVE_ORDER_HEADER));
+        } catch (Exception e){
+            return null;
+        }
+
         mostExpensiveBuyOrder = mostExpensiveBuyOrder.substring(mostExpensiveBuyOrder.indexOf(">") + SKIP_TWO_CHARS);
         mostExpensiveBuyOrder = mostExpensiveBuyOrder.substring(BEGIN_INDEX, mostExpensiveBuyOrder.indexOf("<"));
         return mostExpensiveBuyOrder;

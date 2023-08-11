@@ -20,10 +20,11 @@ public class NodeManagement {
 
     public static Label createItemLabel(String itemLabelText, ItemLabelType labelType) {
         Label itemLabel = new Label(itemLabelText);
-        itemLabel.setId("ANALYSED_ITEM");
         if (labelType == ItemLabelType.IN_PROGRESS){
+            itemLabel.setId("ANALYSED_ITEM");
             itemLabel.setTextFill(Color.GREEN);
         } else if (labelType == ItemLabelType.ACCEPTED){
+            itemLabel.setId("ACCEPTED_ITEM");
             itemLabel.setTextFill(Color.RED);
         }
         itemLabel.setFont(new Font(ANALYSED_ITEM_FONT_SIZE));
@@ -70,13 +71,13 @@ public class NodeManagement {
     }
 
     public static void changeLoadingWheelToFDenyWheel() throws InterruptedException {
-        NodeManagement.checkAndDeleteItemLabel("LOADING_WHEEL");
+        checkAndDeleteItemLabel("LOADING_WHEEL");
         ImageView denyImage = NodeManagement.getDenyWheelImage();
         SteamOffersGui.getMainPane().add(denyImage, LOADING_WHEEL_COLUMN, LOADING_WHEEL_ROW);
     }
 
     public static void changeLoadingWheelToAcceptWheel() throws InterruptedException {
-        NodeManagement.checkAndDeleteItemLabel("LOADING_WHEEL");
+        checkAndDeleteItemLabel("LOADING_WHEEL");
         ImageView acceptImage = NodeManagement.getAcceptWheelImage();
         SteamOffersGui.getMainPane().add(acceptImage, LOADING_WHEEL_COLUMN, LOADING_WHEEL_ROW);
     }

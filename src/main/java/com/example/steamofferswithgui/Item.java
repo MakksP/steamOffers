@@ -36,6 +36,9 @@ public class Item {
         this.createHistogramFromPage();
         System.out.println("Zaczytał: " + this.dataHashName);
         this.findMostExpensiveBuyOrder();
+        if (mostExpensiveBuyOrder == null){
+            System.out.println("ERROR - SKIP");
+        }
         System.out.println("Znalazł najdroższe zlecenie");
         Thread.sleep(GET_PAUSE_TIME_MILLS);
     }
@@ -48,11 +51,11 @@ public class Item {
         driver.get(itemUrl);
         try {
             Thread.sleep(WAIT_FOR_SITE_LOAD_TIME);
+            pageHtml = driver.getPageSource();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        pageHtml = driver.getPageSource();
-
+        driver.close();
     }
 
     public void createHistogramFromPage(){
@@ -104,5 +107,9 @@ public class Item {
 
     public String getDataHashName() {
         return dataHashName;
+    }
+
+    public String getMostExpensiveBuyOrder(){
+        return mostExpensiveBuyOrder;
     }
 }
