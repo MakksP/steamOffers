@@ -19,7 +19,7 @@ public class Format {
     public static final String ITEM_NAME_ID_HEADER = "Market_LoadOrderSpread(";
     public static final int SECOND_SPACE_POSITION = 1;
     public static final int FIRST_SPACE_POSITION = 1;
-    public static final String MOST_EXPENSIVE_ORDER_HEADER = "zleceń kupna zaczynają się od <span class=\\\"market_commodity_orders_header_promote\\\">";
+    public static final String MOST_EXPENSIVE_ORDER_HEADER = "requests to buy at";
     public static final int SKIP_TWO_CHARS = 2;
     public static final int BEGIN_INDEX = 0;
 
@@ -85,13 +85,13 @@ public class Format {
         }
     }
 
-    public static String getItemNameIdFromHtmlPage(StringBuilder pageHtml) {
+    public static String getItemNameIdFromHtmlPage(String pageHtml) {
         String itemNameId = pageHtml.substring(pageHtml.indexOf(ITEM_NAME_ID_HEADER));
         itemNameId = itemNameId.substring(itemNameId.indexOf(" ") + FIRST_SPACE_POSITION, itemNameId.indexOf(")") - SECOND_SPACE_POSITION);
         return itemNameId;
     }
 
-    public static String cutMostExpensiveOrderFromHtml(StringBuilder orderBuyPageHtml) {
+    public static String cutMostExpensiveOrderFromHtml(String orderBuyPageHtml) {
         String mostExpensiveBuyOrder = orderBuyPageHtml.substring(orderBuyPageHtml.indexOf(MOST_EXPENSIVE_ORDER_HEADER));
         mostExpensiveBuyOrder = mostExpensiveBuyOrder.substring(mostExpensiveBuyOrder.indexOf(">") + SKIP_TWO_CHARS);
         mostExpensiveBuyOrder = mostExpensiveBuyOrder.substring(BEGIN_INDEX, mostExpensiveBuyOrder.indexOf("<"));

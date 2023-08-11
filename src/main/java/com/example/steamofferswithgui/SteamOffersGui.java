@@ -79,11 +79,12 @@ public class SteamOffersGui extends Application {
     }
 
     public static void main(String[] args) {
+        System.setProperty("webdriver.gecko.driver", "C:\\Program Files\\geckodriver\\geckodriver.exe");
         launch();
     }
 
-    public static ImageView initLoadingWheel() {
-        ImageView loading = SteamOffersGui.generateImage("/steamOffersImages/loading.gif");
+    public static ImageView initInfoWheel(String path) {
+        ImageView loading = SteamOffersGui.generateImage(path);
         loading.setFitHeight(LOADING_IMAGE_HEIGHT);
         loading.setFitWidth(LOADING_IMAGE_WIDTH);
         return loading;

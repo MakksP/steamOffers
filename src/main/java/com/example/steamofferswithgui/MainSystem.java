@@ -1,12 +1,8 @@
 package com.example.steamofferswithgui;
 
 import javafx.application.Platform;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,8 +11,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
+
+import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
+import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
+
 
 public class MainSystem {
 
@@ -31,11 +29,6 @@ public class MainSystem {
     public static final int EXTRA_CHARS = 3;
     public static final int EMPTY_PANE_SIZE = 1;
     public static final int THREADS_COUNT = 1;
-    public static final int ANALYSED_ITEM_FONT_SIZE = 20;
-    public static final int LOADING_WHEEL_COLUMN = 0;
-    public static final int LOADING_WHEEL_ROW = 0;
-    public static final int ANALYSED_ITEM_COLUMN = 1;
-    public static final int ANALYSED_ITEM_ROW = 0;
     public static final int ACCEPTED_ITEM_COLUMN = 0;
     public static int acceptedItemRowCounter = 2;
 
@@ -51,28 +44,14 @@ public class MainSystem {
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
-            List<Item> itemsOnPage = CreateItemsFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
-
-            for (Item currentItem : itemsOnPage){
-                int points = currentItem.analyseItem();
-                if (points > 0){
-                    Label acceptedItemLabel = createItemLabel(currentItem.getDataHashName());
-                    Platform.runLater(() -> {
-                        SteamOffersGui.getMainPane().add(acceptedItemLabel, acceptedItemRowCounter, ACCEPTED_ITEM_COLUMN);
-                        acceptedItemRowCounter++;
-                    });
-                    System.out.println(currentItem.getDataHashName() + ", punkty opłacalnośći: " + points);
-                }
-            }
+            calculateItemFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
             reader.close();
-            Thread.sleep(Item.GET_PAUSE_TIME_MILLS);
         }
 
     }
 
-    private static List<Item> CreateItemsFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
-        List<Item> itemsOnPage = new ArrayList<>();
+    private static void calculateItemFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
         int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
         int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
         for (int itemIndex = 0; itemIndex < ITEMS_ON_PAGE; itemIndex++) {
@@ -84,48 +63,58 @@ public class MainSystem {
             int endDataHashNameIndex = itemHeader.indexOf("\\");
             String dataHashName = itemHeader.substring(BEGIN_INDEX, endDataHashNameIndex);
 
-            checkAndDeleteAnalysedItemLabel();
-            ImageView loading = getLoadingWheelImage();
+            NodeManagement.checkAndDeleteItemLabel("ANALYSED_ITEM");
+            ImageView loading = NodeManagement.getLoadingWheelImage();
 
-            Label itemLabel = createItemLabel("Analysed item: " + dataHashName);
+            Label itemLabel = NodeManagement.createItemLabel("Analysed item: " + dataHashName, ItemLabelType.IN_PROGRESS);
 
+            NodeManagement.updateInfoWheelToLoading(loading, itemLabel);
             Platform.runLater(() -> {
-                if (paneIsEmpty()){
-                    SteamOffersGui.getMainPane().add(loading, LOADING_WHEEL_COLUMN, LOADING_WHEEL_ROW);
-                }
-
                 SteamOffersGui.getMainPane().add(itemLabel, ANALYSED_ITEM_COLUMN, ANALYSED_ITEM_ROW);
             });
 
             try {
-                itemsOnPage.add(new Item(dataAppid, dataHashName));
+                Item currentItem = new Item(dataAppid, dataHashName);
+                checkItemProfit(currentItem);
+
+
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
 
+        }
+    }
+
+    private static void checkItemProfit(Item currentItem) throws InterruptedException {
+        int points = currentItem.analyseItem();
+        if (itemHavePotential(points)){
+            Label acceptedItemLabel = NodeManagement.createItemLabel(currentItem.getDataHashName(), ItemLabelType.ACCEPTED);
+            Platform.runLater(() -> {
+                try {
+                    NodeManagement.changeLoadingWheelToAcceptWheel();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                SteamOffersGui.getMainPane().add(acceptedItemLabel, acceptedItemRowCounter, ACCEPTED_ITEM_COLUMN);
+                acceptedItemRowCounter++;
+            });
+            System.out.println(currentItem.getDataHashName() + ", punkty opłacalnośći: " + points);
+        } else {
+            Platform.runLater(() -> {
+                try {
+                    NodeManagement.changeLoadingWheelToFDenyWheel();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
         }
-        return itemsOnPage;
     }
 
-    public static Label createItemLabel(String itemLabelText) {
-        Label itemLabel = new Label(itemLabelText);
-        itemLabel.setId("ANALYSED_ITEM");
-        itemLabel.setTextFill(Color.GREEN);
-        itemLabel.setFont(new Font(ANALYSED_ITEM_FONT_SIZE));
-        return itemLabel;
+    private static boolean itemHavePotential(int points) {
+        return points > 0;
     }
 
-    private static boolean paneIsEmpty() {
-        return SteamOffersGui.getMainPane().getChildren().size() == 0;
-    }
-
-    private static ImageView getLoadingWheelImage() {
-        ImageView loading = SteamOffersGui.initLoadingWheel();
-        SteamOffersGui.getMainPane().setAlignment(Pos.TOP_LEFT);
-        loading.setId("LOADING_WHEEL");
-        return loading;
-    }
 
     private static String cutStringBeginsDataHashName(int dataHashNameToSkipLen, String itemHeader) {
         itemHeader = itemHeader.substring(dataHashNameToSkipLen);
@@ -163,13 +152,5 @@ public class MainSystem {
         return pageConnection;
     }
 
-    public static void checkAndDeleteAnalysedItemLabel() throws InterruptedException {
-        for (Node element : SteamOffersGui.getMainPane().getChildren()){
-            if (Objects.equals(element.getId(), "ANALYSED_ITEM")){
-                Platform.runLater(() -> {
-                    SteamOffersGui.getMainPane().getChildren().remove(element);
-                });
-            }
-        }
-    }
+
 }

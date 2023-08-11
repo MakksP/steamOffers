@@ -1,13 +1,13 @@
 package com.example.steamofferswithgui;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 
 public class Item {
     public static final String PRICES_HISTOGRAM_HEADER = "$J(document).ready(function(){";
@@ -18,14 +18,12 @@ public class Item {
     public static final double TAX_PART = 0.15;
     public static final double BONUS_PER_VALUE = 2.5;
     public static final int GET_PAUSE_TIME_MILLS = 4000;
+    public static final int WAIT_FOR_SITE_LOAD_TIME = 5000;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
-    public static final String STATIC_ORDER_GET_FIRST_PART = "https://steamcommunity.com/market/itemordershistogram?country=PL&language=polish&currency=1&item_nameid=";
-    public static final String STATIC_ORDER_GET_SECOND_PART = "&two_factor=0";
     private String itemUrl;
-    private StringBuilder pageHtml;
-    private StringBuilder orderBuyPageHtml;
+    private String pageHtml;
     private List<HistogramElement> itemSellHistogram;
     private String mostExpensiveBuyOrder;
 
@@ -37,20 +35,23 @@ public class Item {
         this.makeConnectionToItem();
         this.createHistogramFromPage();
         System.out.println("Zaczytał: " + this.dataHashName);
-        Thread.sleep(GET_PAUSE_TIME_MILLS);
         this.findMostExpensiveBuyOrder();
         System.out.println("Znalazł najdroższe zlecenie");
         Thread.sleep(GET_PAUSE_TIME_MILLS);
     }
 
     public void makeConnectionToItem() throws IOException {
-        HttpURLConnection pageConnection = MainSystem.connectToPage(itemUrl);
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
-        this.pageHtml = new StringBuilder();
+        FirefoxOptions options = new FirefoxOptions();
+        WebDriver driver = new FirefoxDriver(options);
 
-        MainSystem.readDataFromPage(reader, pageHtml);
-        reader.close();
+        driver.get(itemUrl);
+        try {
+            Thread.sleep(WAIT_FOR_SITE_LOAD_TIME);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        pageHtml = driver.getPageSource();
 
     }
 
@@ -84,14 +85,7 @@ public class Item {
 
     public void findMostExpensiveBuyOrder() throws IOException, InterruptedException {
         String itemNameId = Format.getItemNameIdFromHtmlPage(pageHtml);
-        HttpURLConnection pageConnection = MainSystem.connectToPage(STATIC_ORDER_GET_FIRST_PART + itemNameId + STATIC_ORDER_GET_SECOND_PART);
-        Thread.sleep(GET_PAUSE_TIME_MILLS);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
-        orderBuyPageHtml = new StringBuilder();
-
-        MainSystem.readDataFromPage(reader, orderBuyPageHtml);
-        mostExpensiveBuyOrder = Format.cutMostExpensiveOrderFromHtml(orderBuyPageHtml);
-        reader.close();
+        mostExpensiveBuyOrder = Format.cutMostExpensiveOrderFromHtml(pageHtml);
     }
 
     public int analyseItem(){
