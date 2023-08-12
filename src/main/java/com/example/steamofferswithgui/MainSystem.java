@@ -8,10 +8,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +25,6 @@ public class MainSystem {
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search?q=&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange&appid=730#p";
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
-    public static final int BEGIN_INDEX = 0;
-    public static final int EXTRA_CHARS = 3;
     public static final int ACCEPTED_ITEM_COLUMN = 1;
     public static final int FIRST_PAGE_INDEX = 1;
     public static final int SECOND_PAGE_INDEX = 2;
@@ -38,13 +33,13 @@ public class MainSystem {
 
     public static FirefoxOptions options;
     public static WebDriver driver;
-    public static WebDriverWait waitForSite;
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
         initWebDriver();
         String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
         driver.get(url);
         waitForSiteLoad();
+        System.out.println(((JavascriptExecutor) driver).executeScript("return document.readyState"));
         String pageHtml = driver.getPageSource();
         NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
         for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
@@ -63,15 +58,15 @@ public class MainSystem {
 
     }
 
-    private static void waitForSiteLoad() throws InterruptedException {
-        Thread.sleep(5000);
+    public static void waitForSiteLoad() throws InterruptedException {
+        new WebDriverWait(driver, 10).until(driver ->
+                ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
     }
 
     private static void initWebDriver() {
         options = new FirefoxOptions();
         options.setHeadless(true);
         driver = new FirefoxDriver(options);
-        waitForSite = new WebDriverWait(driver, MAX_LOAD_SITE_TIME);
     }
 
     private static void calculateItemFromPage(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
@@ -93,7 +88,7 @@ public class MainSystem {
 
             try {
                 Item currentItem = new Item(dataAppid, dataHashName);
-                if (currentItem.getMostExpensiveBuyOrder() == null){
+                if (couldNotCreateItem(currentItem)){
                     continue;
                 }
                 checkItemProfit(currentItem);
@@ -104,6 +99,10 @@ public class MainSystem {
             }
 
         }
+    }
+
+    private static boolean couldNotCreateItem(Item currentItem) {
+        return currentItem.getDataHashName().equals("INVALID");
     }
 
     private static void checkItemProfit(Item currentItem) throws InterruptedException {
