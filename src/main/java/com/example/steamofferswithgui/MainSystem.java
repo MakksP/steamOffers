@@ -5,6 +5,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import static com.example.steamofferswithgui.Format.*;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
+
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 
@@ -33,15 +35,13 @@ public class MainSystem {
 
     public static FirefoxOptions options;
     public static WebDriver driver;
+    public static WebElement nextPageBtn;
+
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
         initWebDriver();
-        String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
-        driver.get(url);
-        waitForSiteLoad();
-        System.out.println(((JavascriptExecutor) driver).executeScript("return document.readyState"));
-        String pageHtml = driver.getPageSource();
-        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        String pageHtml = getNextPageButtonAndNumberOfPages();
+        String url;
         for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
@@ -56,6 +56,15 @@ public class MainSystem {
         }
         driver.close();
 
+    }
+
+    private static String getNextPageButtonAndNumberOfPages() throws InterruptedException {
+        String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
+        driver.get(url);
+        waitForSiteLoad();
+        String pageHtml = driver.getPageSource();
+        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        return pageHtml;
     }
 
     public static void waitForSiteLoad() throws InterruptedException {
@@ -88,9 +97,7 @@ public class MainSystem {
 
             try {
                 Item currentItem = new Item(dataAppid, dataHashName);
-                if (couldNotCreateItem(currentItem)){
-                    continue;
-                }
+                currentItem = makeItemOnceMoreIfFailed(dataAppid, dataHashName, currentItem);
                 checkItemProfit(currentItem);
 
 
@@ -99,6 +106,13 @@ public class MainSystem {
             }
 
         }
+    }
+
+    private static Item makeItemOnceMoreIfFailed(int dataAppid, String dataHashName, Item currentItem) throws IOException, InterruptedException {
+        while (couldNotCreateItem(currentItem)){
+            currentItem = new Item(dataAppid, dataHashName);
+        }
+        return currentItem;
     }
 
     private static boolean couldNotCreateItem(Item currentItem) {
@@ -140,9 +154,12 @@ public class MainSystem {
         itemHeader = itemHeader.substring(dataHashNameToSkipLen);
         return itemHeader;
     }
+    //todo wywala bo jest natłok próśb o stronę przez co na kolejnej stronie dostaje gówno nie html więc jest catch w First error
 
     private static String createItemHeader(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int itemIndex) {
+
         return pageHtml.substring(itemsDataStartIndexes.get(itemIndex), itemsDataEndIndexes.get(itemIndex));
+
     }
 
     private static void getStartAndEndHeaderIndex(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
