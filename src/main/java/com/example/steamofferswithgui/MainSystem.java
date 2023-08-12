@@ -1,78 +1,85 @@
 package com.example.steamofferswithgui;
 
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.steamofferswithgui.Format.*;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 public class MainSystem {
 
-    public static final int NUMBER_OF_PAGES = 44268;
-    public static final String SORTING = "&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange";
-    public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search/render/?query=&start=";
+    public static int NUMBER_OF_PAGES;
+    public static final String SORTING = "_popular_desc";
+    public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search?q=&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange&appid=730#p";
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
     public static final int BEGIN_INDEX = 0;
     public static final int EXTRA_CHARS = 3;
     public static final int ACCEPTED_ITEM_COLUMN = 1;
+    public static final int FIRST_PAGE_INDEX = 1;
+    public static final int SECOND_PAGE_INDEX = 2;
+    public static final int MAX_LOAD_SITE_TIME = 10;
     public static int acceptedItemRowCounter = 2;
 
     public static FirefoxOptions options;
     public static WebDriver driver;
+    public static WebDriverWait waitForSite;
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
         initWebDriver();
-
-        for (int currentPageIndex = 0; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex+=10){
-            String url = STATIC_URL_PART + currentPageIndex + SORTING;
-            HttpURLConnection pageConnection = connectToPage(url);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(pageConnection.getInputStream()));
-            StringBuilder pageHtml = new StringBuilder();
-            readDataFromPage(reader, pageHtml);
-
+        String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
+        driver.get(url);
+        waitForSiteLoad();
+        String pageHtml = driver.getPageSource();
+        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
             calculateItemFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
-            reader.close();
+            url = STATIC_URL_PART + currentPageIndex + SORTING;
+            driver.get(url);
+            waitForSiteLoad();
+            pageHtml = driver.getPageSource();
+
         }
         driver.close();
 
+    }
+
+    private static void waitForSiteLoad() throws InterruptedException {
+        Thread.sleep(5000);
     }
 
     private static void initWebDriver() {
         options = new FirefoxOptions();
         options.setHeadless(true);
         driver = new FirefoxDriver(options);
+        waitForSite = new WebDriverWait(driver, MAX_LOAD_SITE_TIME);
     }
 
-    private static void calculateItemFromPage(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
-        int partToSkipLen = "\"result_0\\\" data-appid=\\\"".length();
-        int dataHashNameToSkipLen = "\\\" data-hash-name=\\\"".length() + EXTRA_CHARS;
+    private static void calculateItemFromPage(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
         for (int itemIndex = 0; itemIndex < ITEMS_ON_PAGE; itemIndex++) {
-            String itemHeader = createItemHeader(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes, partToSkipLen, itemIndex);
-            int endDataAppidIndex = itemHeader.indexOf("\\");
-            int dataAppid = Integer.parseInt(itemHeader.substring(BEGIN_INDEX, endDataAppidIndex));
+            String currentItemHeader = createItemHeader(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes, itemIndex);
+            int dataAppid = getItemAppid(currentItemHeader);
+            String dataHashName = getItemDataHashName(currentItemHeader);
 
-            itemHeader = cutStringBeginsDataHashName(dataHashNameToSkipLen, itemHeader);
-            int endDataHashNameIndex = itemHeader.indexOf("\\");
-            String dataHashName = itemHeader.substring(BEGIN_INDEX, endDataHashNameIndex);
 
             NodeManagement.checkAndDeleteItemLabel("ANALYSED_ITEM");
             ImageView loading = NodeManagement.getLoadingWheelImage();
@@ -135,11 +142,11 @@ public class MainSystem {
         return itemHeader;
     }
 
-    private static String createItemHeader(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int partToSkipLen, int itemIndex) {
-        return pageHtml.substring(itemsDataStartIndexes.get(itemIndex) + partToSkipLen, itemsDataEndIndexes.get(itemIndex));
+    private static String createItemHeader(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int itemIndex) {
+        return pageHtml.substring(itemsDataStartIndexes.get(itemIndex), itemsDataEndIndexes.get(itemIndex));
     }
 
-    private static void getStartAndEndHeaderIndex(StringBuilder pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
+    private static void getStartAndEndHeaderIndex(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
         for (int currentItemIndex = 0; currentItemIndex < ITEMS_ON_PAGE; currentItemIndex++){
 
             itemsDataStartIndexes.add(pageHtml.indexOf("\"result_" + currentItemIndex));
@@ -151,24 +158,6 @@ public class MainSystem {
             }
 
         }
-    }
-
-    public static void readDataFromPage(BufferedReader reader, StringBuilder pageHtml) throws IOException {
-        String singleHtmlLine;
-        while ((singleHtmlLine = reader.readLine()) != null){
-            pageHtml.append(singleHtmlLine);
-        }
-    }
-
-    public static HttpURLConnection connectToPage(String url) throws IOException {
-        URL currentItemUrl = new URL(url);
-        HttpURLConnection pageConnection = (HttpURLConnection) currentItemUrl.openConnection();
-        try {
-            pageConnection.setRequestMethod("GET");
-        } catch (Error e){
-            System.out.println("Odrzucono połączenie");
-        }
-        return pageConnection;
     }
 
 
