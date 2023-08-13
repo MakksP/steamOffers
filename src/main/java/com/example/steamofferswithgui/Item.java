@@ -38,7 +38,7 @@ public class Item {
         itemUrl = STATIC_ITEM_LINK_PART + dataAppid + "/" + StringEscapeUtils.unescapeHtml4(dataHashName).replaceAll(" ", "%20");
         itemSellHistogram = new ArrayList<>();
         if (failedToMakeConnectionWithItem()){
-            dataHashName = "INVALID";
+            this.dataHashName = "INVALID";
             return;
         }
         this.createHistogramFromPage();

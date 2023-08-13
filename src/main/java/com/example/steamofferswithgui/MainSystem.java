@@ -55,8 +55,6 @@ public class MainSystem {
             calculateItemFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
             url = STATIC_URL_PART + currentPageIndex + SORTING;
-            //todo nie zdąży pobrać strony nowej bo chyba dynamiczny html tam jest
-            //poczekać dłużej bo kolejne strony to on se jakoś wolniej wgrywa
             do {
                 pageHtml = getHtmlFromNextPage(url);
                 NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
@@ -110,7 +108,7 @@ public class MainSystem {
 
     private static void initWebDriver() {
         options = new FirefoxOptions();
-        //options.setHeadless(true);
+        options.setHeadless(true);
         driver = new FirefoxDriver(options);
     }
 
