@@ -3,11 +3,6 @@ package com.example.steamofferswithgui;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,13 +12,10 @@ import static com.example.steamofferswithgui.Format.*;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
 
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 public class MainSystem {
 
-    public static final int MAX_NEXT_PAGE_WAIT_TIME = 10;
     public static int NUMBER_OF_PAGES;
     public static final String SORTING = "_popular_desc";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search?q=&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange&appid=730#p";
@@ -34,19 +26,15 @@ public class MainSystem {
     public static final int SECOND_PAGE_INDEX = 2;
     public static int acceptedItemRowCounter = 2;
 
-    public static FirefoxOptions options;
-    public static WebDriver driver;
-
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
-        initWebDriver();
+        HtmlRequests.initPageWebDriver();
         String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
         String pageHtml;
         do {
-            pageHtml = getHtml(url);
+            pageHtml = HtmlRequests.getHtml(url);
             NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
-        } while (couldNotGetPages());
-
+        } while (HtmlRequests.couldNotGetPages());
 
         for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
@@ -56,60 +44,12 @@ public class MainSystem {
 
             url = STATIC_URL_PART + currentPageIndex + SORTING;
             do {
-                pageHtml = getHtmlFromNextPage(url);
+                pageHtml = HtmlRequests.getHtmlFromNextPage(url);
                 NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
-            } while (couldNotGetPages());
+            } while (HtmlRequests.couldNotGetPages());
 
         }
-        driver.close();
-
-    }
-
-    private static boolean couldNotGetPages() {
-        return NUMBER_OF_PAGES == -1;
-    }
-
-    private static String getHtml(String url) throws InterruptedException {
-        driver.get(url);
-        waitForSiteLoad();
-        String pageHtml = driver.getPageSource();
-        return pageHtml;
-    }
-
-    private static String getHtmlFromNextPage(String url) throws InterruptedException {
-        driver.get(url);
-        if (couldNotLoadItemsFromNextPage()){
-            return null;
-        }
-        String pageHtml = driver.getPageSource();
-        return pageHtml;
-    }
-
-    private static boolean couldNotLoadItemsFromNextPage() {
-        return waitForNextPageLoad() == -1;
-    }
-
-    private static int waitForNextPageLoad() {
-        WebDriverWait wait = new WebDriverWait(driver, MAX_NEXT_PAGE_WAIT_TIME);
-        try {
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.id("result_0")));
-            return 0;
-
-        } catch (Exception e){
-            System.out.println("Failed to load next page");
-            return -1;
-        }
-    }
-
-    public static void waitForSiteLoad() throws InterruptedException {
-        new WebDriverWait(driver, 10).until(driver ->
-                ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
-    }
-
-    private static void initWebDriver() {
-        options = new FirefoxOptions();
-        options.setHeadless(true);
-        driver = new FirefoxDriver(options);
+        HtmlRequests.pageDriver.close();
     }
 
     private static void calculateItemFromPage(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
@@ -206,13 +146,10 @@ public class MainSystem {
                 String itemDataHtmlPart = pageHtml.substring(itemsDataStartIndexes.get(currentItemIndex));
                 itemsDataEndIndexes.add(itemDataHtmlPart.indexOf(">") + itemsDataStartIndexes.get(currentItemIndex) + ONE_NEXT_INDEX);
             } catch (Exception e) {
-                System.out.println("First error");
                 return -1;
             }
 
         }
         return 0;
     }
-
-
 }

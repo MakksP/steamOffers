@@ -6,12 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import static com.example.steamofferswithgui.MainSystem.driver;
 
 public class Item {
     public static final String PRICES_HISTOGRAM_HEADER = "$J(document).ready(function(){";
@@ -19,8 +15,6 @@ public class Item {
     public static final int MIN_SELLS_IN_MONTH = 8;
     public static final int ONE_HUNDRED_PERCENT = 1;
     public static final double TAX_PART = 0.15;
-    public static final int MAX_BUY_ORDER_WAIT_TIME = 10;
-    public static final String BUY_ORDER_HEADER = "market_commodity_orders_header_promote";
     public static final int NEXT_ITEM_LOAD_TIME_WAIT = 5000;
     private int dataAppid;
     private String dataHashName;
@@ -55,28 +49,17 @@ public class Item {
 
     public int makeConnectionToItem() throws IOException, InterruptedException {
 
-        driver.get(itemUrl);
+        HtmlRequests.pageDriver.get(itemUrl);
         if (waitingForBuyOrdersTimedOut()){
             return -1;
         }
-        System.out.println(((JavascriptExecutor) driver).executeScript("return document.readyState"));
-        pageHtml = driver.getPageSource();
+        System.out.println(((JavascriptExecutor)  HtmlRequests.pageDriver).executeScript("return document.readyState"));
+        pageHtml =  HtmlRequests.pageDriver.getPageSource();
         return 0;
     }
 
     private static boolean waitingForBuyOrdersTimedOut() {
-        return waitForBuyOrdersLoad() == -1;
-    }
-
-    private static int waitForBuyOrdersLoad() {
-        WebDriverWait wait = new WebDriverWait(driver, MAX_BUY_ORDER_WAIT_TIME);
-        try {
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.className(BUY_ORDER_HEADER)));
-            return 0;
-        } catch (Exception e){
-            System.out.println("Failed to load buy orders");
-            return -1;
-        }
+        return HtmlRequests.waitForBuyOrdersLoad() == -1;
     }
 
     public void createHistogramFromPage(){
@@ -96,9 +79,7 @@ public class Item {
                 break;
             }
         }
-
     }
-
 
     private String getHistogramFromHtmlPage() {
         String histogramFromHtml = pageHtml.substring(pageHtml.indexOf(PRICES_HISTOGRAM_HEADER));
@@ -123,7 +104,6 @@ public class Item {
 
             }
         }
-
         return profitPoints;
     }
 
