@@ -188,7 +188,6 @@ public class MainSystem {
         itemHeader = itemHeader.substring(dataHashNameToSkipLen);
         return itemHeader;
     }
-    //todo wywala bo jest natłok próśb o stronę przez co na kolejnej stronie dostaje gówno nie html więc jest catch w First error
 
     private static String createItemHeader(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int itemIndex) {
 

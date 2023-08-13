@@ -17,13 +17,11 @@ public class Item {
     public static final String PRICES_HISTOGRAM_HEADER = "$J(document).ready(function(){";
     public static final int START_INDEX = 0;
     public static final int MIN_SELLS_IN_MONTH = 8;
-    public static final int VALUE_OF_SOLD_COUNT = 5;
     public static final int ONE_HUNDRED_PERCENT = 1;
     public static final double TAX_PART = 0.15;
-    public static final double BONUS_PER_VALUE = 2.5;
     public static final int MAX_BUY_ORDER_WAIT_TIME = 10;
     public static final String BUY_ORDER_HEADER = "market_commodity_orders_header_promote";
-    public static final int NEXT_ITEM_LOAD_TIME_WAIT = 4000;
+    public static final int NEXT_ITEM_LOAD_TIME_WAIT = 5000;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
@@ -110,7 +108,6 @@ public class Item {
     }
 
     public void findMostExpensiveBuyOrder() throws IOException, InterruptedException {
-        String itemNameId = Format.getItemNameIdFromHtmlPage(pageHtml);
         mostExpensiveBuyOrder = Format.cutMostExpensiveOrderFromHtml(pageHtml);
     }
 
@@ -120,8 +117,10 @@ public class Item {
             return profitPoints;
         }
         for (HistogramElement histogramElement : itemSellHistogram){
-            if (Double.parseDouble(mostExpensiveBuyOrder) * (ONE_HUNDRED_PERCENT + TAX_PART) < histogramElement.price){
-                profitPoints += (VALUE_OF_SOLD_COUNT * histogramElement.count) + histogramElement.count * (histogramElement.price / BONUS_PER_VALUE);
+            double minSellPrice = Double.parseDouble(mostExpensiveBuyOrder) * (ONE_HUNDRED_PERCENT + TAX_PART);
+            if (minSellPrice < histogramElement.price){
+                profitPoints += (histogramElement.price - minSellPrice) * histogramElement.count;
+
             }
         }
 
