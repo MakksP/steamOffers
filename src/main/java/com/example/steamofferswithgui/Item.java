@@ -4,17 +4,14 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import static com.example.steamofferswithgui.MainSystem.driver;
-import static com.example.steamofferswithgui.MainSystem.waitForSiteLoad;
 
 public class Item {
     public static final String PRICES_HISTOGRAM_HEADER = "$J(document).ready(function(){";
@@ -26,6 +23,7 @@ public class Item {
     public static final double BONUS_PER_VALUE = 2.5;
     public static final int MAX_BUY_ORDER_WAIT_TIME = 10;
     public static final String BUY_ORDER_HEADER = "market_commodity_orders_header_promote";
+    public static final int NEXT_ITEM_LOAD_TIME_WAIT = 4000;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
@@ -53,6 +51,7 @@ public class Item {
     }
 
     private boolean failedToMakeConnectionWithItem() throws IOException, InterruptedException {
+        Thread.sleep(NEXT_ITEM_LOAD_TIME_WAIT);
         return this.makeConnectionToItem() == -1;
     }
 

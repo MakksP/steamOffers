@@ -3,9 +3,9 @@ package com.example.steamofferswithgui;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
@@ -17,11 +17,13 @@ import static com.example.steamofferswithgui.Format.*;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
 
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 public class MainSystem {
 
+    public static final int MAX_NEXT_PAGE_WAIT_TIME = 10;
     public static int NUMBER_OF_PAGES;
     public static final String SORTING = "_popular_desc";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search?q=&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange&appid=730#p";
@@ -30,18 +32,22 @@ public class MainSystem {
     public static final int ACCEPTED_ITEM_COLUMN = 1;
     public static final int FIRST_PAGE_INDEX = 1;
     public static final int SECOND_PAGE_INDEX = 2;
-    public static final int MAX_LOAD_SITE_TIME = 10;
     public static int acceptedItemRowCounter = 2;
 
     public static FirefoxOptions options;
     public static WebDriver driver;
-    public static WebElement nextPageBtn;
 
 
     public static void startSteamOffersSystem() throws IOException, InterruptedException {
         initWebDriver();
-        String pageHtml = getNextPageButtonAndNumberOfPages();
-        String url;
+        String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
+        String pageHtml;
+        do {
+            pageHtml = getHtml(url);
+            NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        } while (couldNotGetPages());
+
+
         for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
             List <Integer> itemsDataEndIndexes = new ArrayList<>();
@@ -49,22 +55,52 @@ public class MainSystem {
             calculateItemFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
             url = STATIC_URL_PART + currentPageIndex + SORTING;
-            driver.get(url);
-            waitForSiteLoad();
-            pageHtml = driver.getPageSource();
+            //todo nie zdąży pobrać strony nowej bo chyba dynamiczny html tam jest
+            //poczekać dłużej bo kolejne strony to on se jakoś wolniej wgrywa
+            do {
+                pageHtml = getHtmlFromNextPage(url);
+                NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+            } while (couldNotGetPages());
 
         }
         driver.close();
 
     }
 
-    private static String getNextPageButtonAndNumberOfPages() throws InterruptedException {
-        String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
+    private static boolean couldNotGetPages() {
+        return NUMBER_OF_PAGES == -1;
+    }
+
+    private static String getHtml(String url) throws InterruptedException {
         driver.get(url);
         waitForSiteLoad();
         String pageHtml = driver.getPageSource();
-        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
         return pageHtml;
+    }
+
+    private static String getHtmlFromNextPage(String url) throws InterruptedException {
+        driver.get(url);
+        if (couldNotLoadItemsFromNextPage()){
+            return null;
+        }
+        String pageHtml = driver.getPageSource();
+        return pageHtml;
+    }
+
+    private static boolean couldNotLoadItemsFromNextPage() {
+        return waitForNextPageLoad() == -1;
+    }
+
+    private static int waitForNextPageLoad() {
+        WebDriverWait wait = new WebDriverWait(driver, MAX_NEXT_PAGE_WAIT_TIME);
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.id("result_0")));
+            return 0;
+
+        } catch (Exception e){
+            System.out.println("Failed to load next page");
+            return -1;
+        }
     }
 
     public static void waitForSiteLoad() throws InterruptedException {
@@ -74,7 +110,7 @@ public class MainSystem {
 
     private static void initWebDriver() {
         options = new FirefoxOptions();
-        options.setHeadless(true);
+        //options.setHeadless(true);
         driver = new FirefoxDriver(options);
     }
 
@@ -158,11 +194,14 @@ public class MainSystem {
 
     private static String createItemHeader(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int itemIndex) {
 
-        return pageHtml.substring(itemsDataStartIndexes.get(itemIndex), itemsDataEndIndexes.get(itemIndex));
-
+        try {
+            return pageHtml.substring(itemsDataStartIndexes.get(itemIndex), itemsDataEndIndexes.get(itemIndex));
+        } catch (Exception e){
+            return null;
+        }
     }
 
-    private static void getStartAndEndHeaderIndex(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
+    private static int getStartAndEndHeaderIndex(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) {
         for (int currentItemIndex = 0; currentItemIndex < ITEMS_ON_PAGE; currentItemIndex++){
 
             itemsDataStartIndexes.add(pageHtml.indexOf("\"result_" + currentItemIndex));
@@ -171,9 +210,11 @@ public class MainSystem {
                 itemsDataEndIndexes.add(itemDataHtmlPart.indexOf(">") + itemsDataStartIndexes.get(currentItemIndex) + ONE_NEXT_INDEX);
             } catch (Exception e) {
                 System.out.println("First error");
+                return -1;
             }
 
         }
+        return 0;
     }
 
 

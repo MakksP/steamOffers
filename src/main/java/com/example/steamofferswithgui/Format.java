@@ -110,7 +110,12 @@ public class Format {
     }
 
     public static int getCurrentItemTypePages(String pageHtml) {
-        String tmpNumberOfPages = pageHtml.substring(pageHtml.indexOf(PAGES_BUTTONS_HEADER));
+        String tmpNumberOfPages;
+        try {
+             tmpNumberOfPages = pageHtml.substring(pageHtml.indexOf(PAGES_BUTTONS_HEADER));
+        } catch (Exception e){
+            return  -1;
+        }
         tmpNumberOfPages = tmpNumberOfPages.substring(tmpNumberOfPages.indexOf(BUTTON_HEADRS_END_CHAR) - SOME_CHARS_BEFORE_END);
         tmpNumberOfPages = tmpNumberOfPages.substring(tmpNumberOfPages.indexOf(CLOSING_HTML_MARK) + INDEX_AFTER_CHAR);
         tmpNumberOfPages = tmpNumberOfPages.substring(BEGIN_INDEX, tmpNumberOfPages.indexOf(" "));
