@@ -17,7 +17,7 @@ import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
 public class MainSystem {
 
     public static int NUMBER_OF_PAGES;
-    public static final String SORTING = "_popular_desc";
+    public static final String SORTING = "_quantity_desc";
     public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search?q=&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange&appid=730#p";
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
