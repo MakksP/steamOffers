@@ -3,6 +3,7 @@ package com.example.steamofferswithgui;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -98,14 +99,43 @@ public class Item {
         if (this.itemSellHistogram.size() < MIN_SELLS_IN_MONTH){
             return profitPoints;
         }
-        for (HistogramElement histogramElement : itemSellHistogram){
-            double minSellPrice = Double.parseDouble(mostExpensiveBuyOrder) * (ONE_HUNDRED_PERCENT + TAX_PART);
-            if (minSellPrice + MIN_PROFIT_USD < histogramElement.price){
-                profitPoints += (histogramElement.price - minSellPrice) * histogramElement.count;
+        double minSellPrice = Double.parseDouble(mostExpensiveBuyOrder) * (ONE_HUNDRED_PERCENT + TAX_PART);
+        List<HistogramElement> elementsToRemove = new ArrayList<>();
+        getElementsToRemove(minSellPrice, elementsToRemove);
+        removeNonBeneficialPoints(elementsToRemove);
+        double itemsPriceMedian = calculateMedian();
+        return calculatePoints(profitPoints, itemsPriceMedian);
+    }
 
+    private int calculatePoints(int profitPoints, double itemsPriceMedian) {
+        for (HistogramElement histogramElement : itemSellHistogram){
+            if (itemsPriceMedian * 1.2 >= histogramElement.price){
+                profitPoints += histogramElement.price * histogramElement.count;
             }
         }
         return profitPoints;
+    }
+
+    private void removeNonBeneficialPoints(List<HistogramElement> elementsToRemove) {
+        for (int elementsToRemoveIndex = 0; elementsToRemoveIndex < elementsToRemove.size(); elementsToRemoveIndex++) {
+            itemSellHistogram.remove(elementsToRemove.get(elementsToRemoveIndex));
+        }
+    }
+
+    private double calculateMedian(){
+        itemSellHistogram.sort(Comparator.comparingDouble(HistogramElement::getPrice));
+        if (itemSellHistogram.size() % 2 == 0){
+            return itemSellHistogram.get(itemSellHistogram.size() / 2).getPrice() + itemSellHistogram.get(itemSellHistogram.size() / 2 + 1).getPrice() / 2;
+        }
+        return itemSellHistogram.get(itemSellHistogram.size() / 2 + 1).getPrice();
+    }
+
+    private void getElementsToRemove(double minSellPrice, List<HistogramElement> elementsToRemove) {
+        for (HistogramElement histogramElement : itemSellHistogram){
+            if (minSellPrice + MIN_PROFIT_USD > histogramElement.price){
+                elementsToRemove.add(histogramElement);
+            }
+        }
     }
 
     public String getDataHashName() {

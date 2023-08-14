@@ -18,4 +18,8 @@ public class HistogramElement {
         LocalDate beginDate = currentDate.minusDays(DAYS_IN_MONTH);
         return itemSoldDate.isAfter(beginDate) || itemSoldDate.isEqual(beginDate);
     }
+
+    public double getPrice(){
+        return price;
+    }
 }
