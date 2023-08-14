@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -41,11 +42,19 @@ public class SteamOffersGui extends Application {
     public void start(Stage stage) throws IOException {
         mainPane = initMenuPane();
         mainPane.setBackground(new Background(new BackgroundFill(Paint.valueOf(BACKGROUND_COLOR_HEX), null, null)));
-        Scene scene = new Scene(mainPane, SCENE_WIDTH, SCENE_HEIGHT);
+        ScrollPane mainContainer = initMainContainer();
+        Scene scene = new Scene(mainContainer, SCENE_WIDTH, SCENE_HEIGHT);
         stage.setTitle("Steam market offers by czisiasty - v1.0");
         stage.setScene(scene);
         stage.show();
         initMenu(mainPane);
+    }
+
+    private static ScrollPane initMainContainer() {
+        ScrollPane mainContainer = new ScrollPane(mainPane);
+        mainContainer.setFitToWidth(true);
+        mainContainer.setFitToHeight(true);
+        return mainContainer;
     }
 
     private static GridPane initMenuPane() {
