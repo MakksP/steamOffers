@@ -16,6 +16,7 @@ public class Item {
     public static final int ONE_HUNDRED_PERCENT = 1;
     public static final double TAX_PART = 0.15;
     public static final int NEXT_ITEM_LOAD_TIME_WAIT = 5000;
+    public static final double MIN_PROFIT_USD = 7.5;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
@@ -99,7 +100,7 @@ public class Item {
         }
         for (HistogramElement histogramElement : itemSellHistogram){
             double minSellPrice = Double.parseDouble(mostExpensiveBuyOrder) * (ONE_HUNDRED_PERCENT + TAX_PART);
-            if (minSellPrice < histogramElement.price){
+            if (minSellPrice + MIN_PROFIT_USD < histogramElement.price){
                 profitPoints += (histogramElement.price - minSellPrice) * histogramElement.count;
 
             }
