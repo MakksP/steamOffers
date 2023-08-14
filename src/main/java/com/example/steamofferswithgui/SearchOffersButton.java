@@ -16,11 +16,15 @@ public class SearchOffersButton extends Button {
         });
 
         this.setOnMouseClicked(mouseEvent -> {
+            String itemType = getItemTypeFromItemsComboBox();
+            if (itemTypeIsNotSelected(itemType)){
+                return;
+            }
             clearMainPane();
 
             Thread searchTask = new Thread(() -> {
                 try {
-                    MainSystem.startSteamOffersSystem();
+                    MainSystem.startSteamOffersSystem(itemType);
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -28,6 +32,14 @@ public class SearchOffersButton extends Button {
 
             searchTask.start();
         });
+    }
+
+    private static boolean itemTypeIsNotSelected(String itemType) {
+        return itemType == null;
+    }
+
+    private static String getItemTypeFromItemsComboBox() {
+        return (String) SteamOffersGui.getItemsComboBox().getValue();
     }
 
 

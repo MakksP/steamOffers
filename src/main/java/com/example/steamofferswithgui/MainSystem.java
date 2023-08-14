@@ -17,8 +17,8 @@ import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
 public class MainSystem {
 
     public static int NUMBER_OF_PAGES;
-    public static final String SORTING = "_quantity_desc";
-    public static final String STATIC_URL_PART = "https://steamcommunity.com/market/search?q=&category_730_ItemSet%5B%5D=any&category_730_ProPlayer%5B%5D=any&category_730_StickerCapsule%5B%5D=any&category_730_TournamentTeam%5B%5D=any&category_730_Weapon%5B%5D=any&category_730_Quality%5B%5D=tag_unusual_strange&appid=730#p";
+    public static String SORTING = "_quantity_desc";
+    public static String STATIC_URL_PART;
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
     public static final int ACCEPTED_ITEM_COLUMN = 1;
@@ -27,7 +27,9 @@ public class MainSystem {
     public static int acceptedItemRowCounter = 2;
 
 
-    public static void startSteamOffersSystem() throws IOException, InterruptedException {
+    public static void startSteamOffersSystem(String itemType) throws IOException, InterruptedException {
+        ItemsLinks.initItemsLinks();
+        STATIC_URL_PART = getStaticUrlPart(itemType);
         HtmlRequests.initPageWebDriver();
         String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
         String pageHtml;
@@ -50,6 +52,10 @@ public class MainSystem {
 
         }
         HtmlRequests.pageDriver.close();
+    }
+
+    private static String getStaticUrlPart(String itemType) {
+        return ItemsLinks.getLinksToItemsByName().get(itemType);
     }
 
     private static void calculateItemFromPage(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {

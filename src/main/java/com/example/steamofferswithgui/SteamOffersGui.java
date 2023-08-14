@@ -99,4 +99,7 @@ public class SteamOffersGui extends Application {
         return loading;
     }
 
+    public static ItemsComboBox<String> getPossibleSearchOptions(){
+        return possibleSearchOptions;
+    }
 }
