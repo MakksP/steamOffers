@@ -18,6 +18,7 @@ public class Item {
     public static final double TAX_PART = 0.15;
     public static final int NEXT_ITEM_LOAD_TIME_WAIT = 5000;
     public static final double MIN_PROFIT_USD = 7.5;
+    public static final int NON_PROFITABLE_ITEM_POINTS = 0;
     private int dataAppid;
     private String dataHashName;
     public static final String STATIC_ITEM_LINK_PART = "https://steamcommunity.com/market/listings/";
@@ -103,14 +104,21 @@ public class Item {
         List<HistogramElement> elementsToRemove = new ArrayList<>();
         getElementsToRemove(minSellPrice, elementsToRemove);
         removeNonBeneficialPoints(elementsToRemove);
+        if (itemIsNotProfitable()){
+            return NON_PROFITABLE_ITEM_POINTS;
+        }
         double itemsPriceMedian = calculateMedian();
-        return calculatePoints(profitPoints, itemsPriceMedian);
+        return calculatePoints(profitPoints, itemsPriceMedian, minSellPrice);
     }
 
-    private int calculatePoints(int profitPoints, double itemsPriceMedian) {
+    private boolean itemIsNotProfitable() {
+        return itemSellHistogram.size() == 0;
+    }
+
+    private int calculatePoints(int profitPoints, double itemsPriceMedian, double minSellPrice) {
         for (HistogramElement histogramElement : itemSellHistogram){
             if (itemsPriceMedian * 1.2 >= histogramElement.price){
-                profitPoints += histogramElement.price * histogramElement.count;
+                profitPoints += histogramElement.price - minSellPrice * histogramElement.count;
             }
         }
         return profitPoints;
@@ -125,9 +133,9 @@ public class Item {
     private double calculateMedian(){
         itemSellHistogram.sort(Comparator.comparingDouble(HistogramElement::getPrice));
         if (itemSellHistogram.size() % 2 == 0){
-            return itemSellHistogram.get(itemSellHistogram.size() / 2).getPrice() + itemSellHistogram.get(itemSellHistogram.size() / 2 + 1).getPrice() / 2;
+            return (itemSellHistogram.get(itemSellHistogram.size() / 2 - 1).getPrice() + itemSellHistogram.get(itemSellHistogram.size() / 2).getPrice()) / 2;
         }
-        return itemSellHistogram.get(itemSellHistogram.size() / 2 + 1).getPrice();
+        return itemSellHistogram.get(itemSellHistogram.size() / 2).getPrice();
     }
 
     private void getElementsToRemove(double minSellPrice, List<HistogramElement> elementsToRemove) {
