@@ -11,7 +11,7 @@ public class HtmlRequests {
     public static final String PAGE_HEADER = "market_paging_pagelink";
     public static FirefoxOptions pageOptions;
     public static WebDriver pageDriver;
-    public static final int MAX_NEXT_PAGE_WAIT_TIME = 10;
+    public static final int MAX_NEXT_PAGE_WAIT_TIME = 15;
     public static final int MAX_BUY_ORDER_WAIT_TIME = 10;
     public static final String BUY_ORDER_HEADER = "market_commodity_orders_header_promote";
 
@@ -30,7 +30,7 @@ public class HtmlRequests {
 
     public static void initPageWebDriver() {
         HtmlRequests.pageOptions = new FirefoxOptions();
-        HtmlRequests.pageOptions.setHeadless(true);
+        //HtmlRequests.pageOptions.setHeadless(true);
         HtmlRequests.pageDriver = new FirefoxDriver(HtmlRequests.pageOptions);
     }
 

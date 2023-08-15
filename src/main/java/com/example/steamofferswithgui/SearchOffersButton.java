@@ -17,6 +17,7 @@ public class SearchOffersButton extends Button {
 
         this.setOnMouseClicked(mouseEvent -> {
             String itemType = getItemTypeFromItemsComboBox();
+            String searchFilter = getSearchFilterFromTextField();
             if (itemTypeIsNotSelected(itemType)){
                 return;
             }
@@ -24,7 +25,7 @@ public class SearchOffersButton extends Button {
 
             Thread searchTask = new Thread(() -> {
                 try {
-                    MainSystem.startSteamOffersSystem(itemType);
+                    MainSystem.startSteamOffersSystem(itemType, searchFilter);
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -32,6 +33,10 @@ public class SearchOffersButton extends Button {
 
             searchTask.start();
         });
+    }
+
+    private static String getSearchFilterFromTextField() {
+        return SteamOffersGui.getNameSearch().getText();
     }
 
     private static boolean itemTypeIsNotSelected(String itemType) {

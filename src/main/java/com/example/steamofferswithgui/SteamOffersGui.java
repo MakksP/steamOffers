@@ -5,12 +5,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -34,9 +36,12 @@ public class SteamOffersGui extends Application {
     public static final int MAIN_PANE_LEFT_PADDING = 30;
     public static final int LOADING_IMAGE_HEIGHT = 50;
     public static final int LOADING_IMAGE_WIDTH = 50;
+    public static final int NAME_SEARCH_COLUMN_INDEX = 0;
+    public static final int NAME_SEARCH_ROW_INDEX = 2;
     private SearchOffersButton startLooking;
     private static GridPane mainPane;
     private static ItemsComboBox<String> possibleSearchOptions;
+    private static TextField nameSearch;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -72,6 +77,9 @@ public class SteamOffersGui extends Application {
         mainPane.add(possibleSearchOptions, COMBOBOX_COLUMN_INDEX, COMBOBOX_ROW_INDEX);
         startLooking = new SearchOffersButton("Search");
         mainPane.add(startLooking, BUTTON_COLUMN_INDEX, BUTTON_ROW_INDEX);
+        nameSearch = new TextField();
+        mainPane.add(nameSearch, NAME_SEARCH_COLUMN_INDEX, NAME_SEARCH_ROW_INDEX);
+
     }
 
     public static ImageView generateImage(String path){
@@ -97,6 +105,10 @@ public class SteamOffersGui extends Application {
         loading.setFitHeight(LOADING_IMAGE_HEIGHT);
         loading.setFitWidth(LOADING_IMAGE_WIDTH);
         return loading;
+    }
+
+    public static TextField getNameSearch(){
+        return nameSearch;
     }
 
     public static ItemsComboBox<String> getPossibleSearchOptions(){

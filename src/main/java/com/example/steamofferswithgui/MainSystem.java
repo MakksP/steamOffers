@@ -7,6 +7,7 @@ import javafx.scene.image.ImageView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.example.steamofferswithgui.Format.*;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
@@ -16,22 +17,29 @@ import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
 
 public class MainSystem {
 
+    public static final String PAGE_PREFIX = "#p";
     public static int NUMBER_OF_PAGES;
     public static String SORTING = "_quantity_desc";
     public static String STATIC_URL_PART;
+    public static String SEARCH_FILTER;
     public static final int ITEMS_ON_PAGE = 10;
     public static final int ONE_NEXT_INDEX = 1;
     public static final int ACCEPTED_ITEM_COLUMN = 1;
-    public static final int FIRST_PAGE_INDEX = 1;
+    public static final String FIRST_PAGE_INDEX = "#p1";
     public static final int SECOND_PAGE_INDEX = 2;
     public static int acceptedItemRowCounter = 2;
 
 
-    public static void startSteamOffersSystem(String itemType) throws IOException, InterruptedException {
+    public static void startSteamOffersSystem(String itemType, String searchFilter) throws IOException, InterruptedException {
         ItemsLinks.initItemsLinks();
         STATIC_URL_PART = getStaticUrlPart(itemType);
+        if (isNotEmpty(searchFilter)){
+            SEARCH_FILTER = "&q=";
+        }
+        searchFilter = searchFilter.replace(" ", "+");
+        SEARCH_FILTER += searchFilter;
         HtmlRequests.initPageWebDriver();
-        String url = STATIC_URL_PART + FIRST_PAGE_INDEX + SORTING;
+        String url = STATIC_URL_PART + SEARCH_FILTER + FIRST_PAGE_INDEX + SORTING;
         String pageHtml;
         do {
             pageHtml = HtmlRequests.getHtml(url);
@@ -44,7 +52,7 @@ public class MainSystem {
             getStartAndEndHeaderIndex(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
             calculateItemFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
-            url = STATIC_URL_PART + currentPageIndex + SORTING;
+            url = STATIC_URL_PART + SEARCH_FILTER + PAGE_PREFIX + currentPageIndex + SORTING;
             do {
                 pageHtml = HtmlRequests.getHtmlFromNextPage(url);
                 NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
@@ -52,6 +60,10 @@ public class MainSystem {
 
         }
         HtmlRequests.pageDriver.close();
+    }
+
+    private static boolean isNotEmpty(String searchFilter) {
+        return !Objects.equals(searchFilter, "");
     }
 
     private static String getStaticUrlPart(String itemType) {
