@@ -9,6 +9,9 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class HtmlRequests {
     public static final String PAGE_HEADER = "market_paging_pagelink";
+    public static final int ORDERS_LOAD_INIT_VALUE = 0;
+    public static final int SITE_LOAD_INIT_VALUE = 0;
+    public static final int PAGE_LOAD_INIT_VALUE = 0;
     public static FirefoxOptions pageOptions;
     public static WebDriver pageDriver;
     public static final int MAX_NEXT_PAGE_WAIT_TIME = 15;
@@ -23,7 +26,6 @@ public class HtmlRequests {
 
         } catch (Exception e){
             System.out.println("Failed to get pages");
-            pageDriver.navigate().refresh();
             return -1;
         }
     }
@@ -34,10 +36,9 @@ public class HtmlRequests {
         HtmlRequests.pageDriver = new FirefoxDriver(HtmlRequests.pageOptions);
     }
 
-    public static String getHtml(String url) throws InterruptedException {
+    public static String getHtml(String url, HtmlType type) throws InterruptedException {
         pageDriver.get(url);
-        waitForSiteLoad();
-        waitForNextPageLoad();
+        waitForHtmlLoad(type);
         String pageHtml = pageDriver.getPageSource();
         return pageHtml;
     }
@@ -58,14 +59,36 @@ public class HtmlRequests {
         }
     }
 
-    public static String getHtmlFromNextPage(String url) throws InterruptedException {
+    public static String getHtmlFromNextPage(String url, HtmlType type) throws InterruptedException {
         pageDriver.get(url);
+        waitForHtmlLoad(type);
         if (couldNotLoadItemsFromNextPage()){
-            pageDriver.navigate().refresh();
             return null;
         }
         String pageHtml = pageDriver.getPageSource();
         return pageHtml;
+    }
+
+    public static void refreshPage(HtmlType type) throws InterruptedException {
+        pageDriver.navigate().refresh();
+        waitForHtmlLoad(type);
+    }
+
+    public static int waitForHtmlLoad(HtmlType type) throws InterruptedException {
+        int siteLoad = SITE_LOAD_INIT_VALUE;
+        int pageLoad = PAGE_LOAD_INIT_VALUE;
+        if (type == HtmlType.PAGE){
+            siteLoad = waitForSiteLoad();
+            pageLoad = waitForNextPageLoad();
+        }
+        int ordersLoad = ORDERS_LOAD_INIT_VALUE;
+        if (type == HtmlType.ITEM){
+            ordersLoad = waitForBuyOrdersLoad();
+        }
+        if (siteLoad == -1 || pageLoad == -1 || ordersLoad == -1){
+            return -1;
+        }
+        return 0;
     }
 
     public static boolean couldNotGetPages() {

@@ -41,10 +41,13 @@ public class MainSystem {
         HtmlRequests.initPageWebDriver();
         String url = STATIC_URL_PART + SEARCH_FILTER + FIRST_PAGE_INDEX + SORTING;
         String pageHtml;
-        do {
-            pageHtml = HtmlRequests.getHtml(url);
+        pageHtml = HtmlRequests.getHtml(url, HtmlType.PAGE);
+        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        while (HtmlRequests.couldNotGetPages()){
+            HtmlRequests.refreshPage(HtmlType.PAGE);
             NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
-        } while (HtmlRequests.couldNotGetPages());
+        }
+
 
         for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
@@ -54,7 +57,7 @@ public class MainSystem {
 
             url = STATIC_URL_PART + SEARCH_FILTER + PAGE_PREFIX + currentPageIndex + SORTING;
             do {
-                pageHtml = HtmlRequests.getHtmlFromNextPage(url);
+                pageHtml = HtmlRequests.getHtmlFromNextPage(url, HtmlType.PAGE);
                 NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
             } while (HtmlRequests.couldNotGetPages());
 
@@ -70,7 +73,7 @@ public class MainSystem {
         return ItemsLinks.getLinksToItemsByName().get(itemType);
     }
 
-    private static void calculateItemFromPage(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws IOException, InterruptedException {
+    private static void calculateItemFromPage(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes) throws InterruptedException {
         for (int itemIndex = 0; itemIndex < ITEMS_ON_PAGE; itemIndex++) {
             String currentItemHeader = createItemHeader(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes, itemIndex);
             int dataAppid = getItemAppid(currentItemHeader);

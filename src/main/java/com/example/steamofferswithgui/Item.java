@@ -45,15 +45,15 @@ public class Item {
         System.out.println("Znalazł najdroższe zlecenie");
     }
 
-    private boolean failedToMakeConnectionWithItem() throws IOException, InterruptedException {
+    private boolean failedToMakeConnectionWithItem() throws InterruptedException {
         Thread.sleep(NEXT_ITEM_LOAD_TIME_WAIT);
         return this.makeConnectionToItem() == -1;
     }
 
-    public int makeConnectionToItem() throws IOException, InterruptedException {
+    public int makeConnectionToItem() throws InterruptedException {
 
         HtmlRequests.pageDriver.get(itemUrl);
-        if (waitingForBuyOrdersTimedOut()){
+        if (couldNotLoadItem()){
             return -1;
         }
         System.out.println(((JavascriptExecutor)  HtmlRequests.pageDriver).executeScript("return document.readyState"));
@@ -61,9 +61,10 @@ public class Item {
         return 0;
     }
 
-    private static boolean waitingForBuyOrdersTimedOut() {
-        return HtmlRequests.waitForBuyOrdersLoad() == -1;
+    private static boolean couldNotLoadItem() throws InterruptedException {
+        return HtmlRequests.waitForHtmlLoad(HtmlType.ITEM) == -1;
     }
+
 
     public void createHistogramFromPage(){
         String histogramFromHtml = getHistogramFromHtmlPage();
