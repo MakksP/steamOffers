@@ -13,8 +13,6 @@ import static com.example.steamofferswithgui.Format.*;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_COLUMN;
 import static com.example.steamofferswithgui.NodeManagement.ANALYSED_ITEM_ROW;
 
-
-
 public class MainSystem {
 
     public static final String PAGE_PREFIX = "#p";
@@ -40,14 +38,7 @@ public class MainSystem {
         SEARCH_FILTER += searchFilter;
         HtmlRequests.initPageWebDriver();
         String url = STATIC_URL_PART + SEARCH_FILTER + FIRST_PAGE_INDEX + SORTING;
-        String pageHtml;
-        pageHtml = HtmlRequests.getHtml(url, HtmlType.PAGE);
-        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
-        while (HtmlRequests.couldNotGetPages()){
-            HtmlRequests.refreshPage(HtmlType.PAGE);
-            NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
-        }
-
+        String pageHtml = serveGettingPageHtml(url);
 
         for (int currentPageIndex = SECOND_PAGE_INDEX; currentPageIndex <= NUMBER_OF_PAGES; currentPageIndex++){
             List <Integer> itemsDataStartIndexes = new ArrayList<>();
@@ -56,13 +47,22 @@ public class MainSystem {
             calculateItemFromPage(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes);
 
             url = STATIC_URL_PART + SEARCH_FILTER + PAGE_PREFIX + currentPageIndex + SORTING;
-            do {
-                pageHtml = HtmlRequests.getHtmlFromNextPage(url, HtmlType.PAGE);
-                NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
-            } while (HtmlRequests.couldNotGetPages());
+            pageHtml = serveGettingPageHtml(url);
 
         }
         HtmlRequests.pageDriver.close();
+    }
+
+    private static String serveGettingPageHtml(String url) throws InterruptedException {
+        String pageHtml;
+        pageHtml = HtmlRequests.getHtml(url, HtmlType.PAGE);
+        NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        while (HtmlRequests.couldNotGetPages()) {
+            HtmlRequests.refreshPage();
+            HtmlRequests.waitForHtmlLoad(HtmlType.PAGE);
+            NUMBER_OF_PAGES = getCurrentItemTypePages(pageHtml);
+        }
+        return pageHtml;
     }
 
     private static boolean isNotEmpty(String searchFilter) {
@@ -78,7 +78,6 @@ public class MainSystem {
             String currentItemHeader = createItemHeader(pageHtml, itemsDataStartIndexes, itemsDataEndIndexes, itemIndex);
             int dataAppid = getItemAppid(currentItemHeader);
             String dataHashName = getItemDataHashName(currentItemHeader);
-
 
             NodeManagement.checkAndDeleteItemLabel("ANALYSED_ITEM");
             ImageView loading = NodeManagement.getLoadingWheelImage();
@@ -142,12 +141,6 @@ public class MainSystem {
 
     private static boolean itemHavePotential(int points) {
         return points > 0;
-    }
-
-
-    private static String cutStringBeginsDataHashName(int dataHashNameToSkipLen, String itemHeader) {
-        itemHeader = itemHeader.substring(dataHashNameToSkipLen);
-        return itemHeader;
     }
 
     private static String createItemHeader(String pageHtml, List<Integer> itemsDataStartIndexes, List<Integer> itemsDataEndIndexes, int itemIndex) {

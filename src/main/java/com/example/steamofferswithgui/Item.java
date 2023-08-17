@@ -16,7 +16,6 @@ public class Item {
     public static final int MIN_SELLS_IN_MONTH = 8;
     public static final int ONE_HUNDRED_PERCENT = 1;
     public static final double TAX_PART = 0.15;
-    public static final int NEXT_ITEM_LOAD_TIME_WAIT = 5000;
     public static final double MIN_PROFIT_USD = 7.5;
     public static final int NON_PROFITABLE_ITEM_POINTS = 0;
     private int dataAppid;
@@ -46,7 +45,6 @@ public class Item {
     }
 
     private boolean failedToMakeConnectionWithItem() throws InterruptedException {
-        Thread.sleep(NEXT_ITEM_LOAD_TIME_WAIT);
         return this.makeConnectionToItem() == -1;
     }
 

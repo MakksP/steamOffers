@@ -69,9 +69,8 @@ public class HtmlRequests {
         return pageHtml;
     }
 
-    public static void refreshPage(HtmlType type) throws InterruptedException {
+    public static void refreshPage() throws InterruptedException {
         pageDriver.navigate().refresh();
-        waitForHtmlLoad(type);
     }
 
     public static int waitForHtmlLoad(HtmlType type) throws InterruptedException {
